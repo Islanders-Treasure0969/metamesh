@@ -42,10 +42,10 @@
 │       ↕ 自然言語                                   │
 │  Claude Desktop / Code                            │
 │  ├─ Skills (.claude/skills/)                       │
-│  │  └─ cbc-modeling-interview ←  実装済み           │
-│  │     (nbr-identification, ontology-review,        │
-│  │      dv-implementation-design, ontology-visualize │
-│  │      は今後追加予定)                              │
+│  │  ├─ cbc-modeling-interview                      │
+│  │  └─ nbr-identification                          │
+│  │     (ontology-review, dv-implementation-design,  │
+│  │      ontology-visualize は今後追加予定)            │
 │       ↕ MCP                                        │
 │  metamesh server  (薄い primitive)                 │
 │  ├─ Write : add_concept, add_relationship          │
@@ -226,7 +226,8 @@ uv run ruff check .
 | 2 | `add_relationship` / `generate_dbt_yaml` | ✅ |
 | 3a | `generate_semantic_layer` / `export_llm_context` / `query_concept` | ✅ |
 | 3b | `cbc-modeling-interview` Skill | ✅ |
-| 4 | 追加 Skills (`nbr-identification`, `ontology-review`, `dv-implementation-design`, `ontology-visualize`) | 未着手 |
+| 3c | `nbr-identification` Skill | ✅ |
+| 4 | 追加 Skills (`ontology-review`, `dv-implementation-design`, `ontology-visualize`) | 未着手 |
 | 5 | Holodex API 実データでの検証 | 未着手 |
 | 6 | SHACL バリデーション | 未着手 |
 | 7 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
