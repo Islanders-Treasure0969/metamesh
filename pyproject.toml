@@ -12,6 +12,7 @@ dependencies = [
     "mcp>=1.2.0",
     "rdflib>=7.0.0",
     "pyld>=2.0.4",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
