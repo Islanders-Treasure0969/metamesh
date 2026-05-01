@@ -1,0 +1,128 @@
+semantic_models:
+- name: hub_channel
+  description: 'チャンネル (Channel): YouTube・Twitch 等のプラットフォーム上で開設された、配信者が所有する個別の配信枠。'
+  model: ref('hub_channel')
+  entities:
+  - name: channel
+    type: primary
+    expr: channel_id
+  dimensions: []
+  measures: []
+- name: hub_clip
+  description: '切り抜き (Clip): 元の配信 (Stream) の一部を切り出して編集された二次的な動画コンテンツ。'
+  model: ref('hub_clip')
+  entities:
+  - name: clip
+    type: primary
+    expr: clip_video_id
+  dimensions: []
+  measures: []
+- name: hub_organization
+  description: '事務所 (Organization): 配信者が所属する VTuber 事務所・グループ。'
+  model: ref('hub_organization')
+  entities:
+  - name: organization
+    type: primary
+    expr: org_name
+  dimensions: []
+  measures: []
+- name: hub_stream
+  description: '配信 (Stream): Channel 上で行われる 1 回の配信イベント。'
+  model: ref('hub_stream')
+  entities:
+  - name: stream
+    type: primary
+    expr: video_id
+  dimensions: []
+  measures: []
+- name: hub_streamer
+  description: '配信者 (Streamer): バーチャルアバターを用いて配信活動を行うキャラクター単位のエンティティ。'
+  model: ref('hub_streamer')
+  entities:
+  - name: streamer
+    type: primary
+    expr: streamer_id
+  dimensions: []
+  measures: []
+- name: hub_topic
+  description: 'トピック (Topic): 配信のジャンル・テーマを示す分類タグ。'
+  model: ref('hub_topic')
+  entities:
+  - name: topic
+    type: primary
+    expr: topic_id
+  dimensions: []
+  measures: []
+- name: lnk_streamer_org
+  description: '事務所に所属する (belongs to organization): 配信者が VTuber 事務所に所属する関係。'
+  model: ref('lnk_streamer_org')
+  entities:
+  - name: streamer
+    type: foreign
+    expr: streamer_id
+  - name: organization
+    type: foreign
+    expr: org_name
+  dimensions: []
+  measures: []
+- name: lnk_stream_topic
+  description: 'カテゴリに分類される (categorized as): 配信がジャンル/テーマに分類される関係。'
+  model: ref('lnk_stream_topic')
+  entities:
+  - name: stream
+    type: foreign
+    expr: video_id
+  - name: topic
+    type: foreign
+    expr: topic_id
+  dimensions: []
+  measures: []
+- name: lnk_clip_stream
+  description: 'から派生する (derived from): 切り抜きが元の配信から派生する関係。'
+  model: ref('lnk_clip_stream')
+  entities:
+  - name: clip
+    type: foreign
+    expr: clip_video_id
+  - name: stream
+    type: foreign
+    expr: video_id
+  dimensions: []
+  measures: []
+- name: lnk_stream_channel
+  description: '配信をホストする (hosts stream): チャンネル上で 1 回の配信イベントが行われる関係。'
+  model: ref('lnk_stream_channel')
+  entities:
+  - name: channel
+    type: foreign
+    expr: channel_id
+  - name: stream
+    type: foreign
+    expr: video_id
+  dimensions: []
+  measures: []
+- name: lnk_streamer_channel
+  description: 'チャンネルを所有する (owns channel): 配信者が YouTube/Twitch 等の配信枠を所有する関係。'
+  model: ref('lnk_streamer_channel')
+  entities:
+  - name: streamer
+    type: foreign
+    expr: streamer_id
+  - name: channel
+    type: foreign
+    expr: channel_id
+  dimensions: []
+  measures: []
+- name: lnk_collab
+  description: '配信に出演する (participates in): 配信者が配信に出演する関係 (コラボを含む)。'
+  model: ref('lnk_collab')
+  entities:
+  - name: streamer
+    type: foreign
+    expr: streamer_id
+  - name: stream
+    type: foreign
+    expr: video_id
+  dimensions: []
+  measures: []
+metrics: []
