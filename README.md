@@ -45,8 +45,8 @@
 │  │  ├─ cbc-modeling-interview                      │
 │  │  ├─ nbr-identification                          │
 │  │  ├─ ontology-visualize                          │
-│  │  └─ ontology-review                             │
-│  │     (dv-implementation-design は今後追加予定)     │
+│  │  ├─ ontology-review                             │
+│  │  └─ dv-implementation-design                    │
 │       ↕ MCP                                        │
 │  metamesh server  (薄い primitive)                 │
 │  ├─ Write : add_concept, add_relationship          │
@@ -231,7 +231,7 @@ uv run ruff check .
 | 3c | `nbr-identification` Skill | ✅ |
 | 3d | `ontology-visualize` Skill | ✅ |
 | 3e | `ontology-review` Skill | ✅ |
-| 4 | 追加 Skills (`dv-implementation-design`) | 未着手 |
+| 3f | `dv-implementation-design` Skill | ✅ |
 | 5 | Holodex API 実データでの検証 | 未着手 |
 | 6 | SHACL バリデーション | 未着手 |
 | 7 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
