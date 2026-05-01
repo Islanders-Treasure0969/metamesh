@@ -1,0 +1,68 @@
+{
+  "@context": {
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "@base": "https://metamesh.dev/ontology/",
+    "dv": "https://metamesh.dev/ext/dv/"
+  },
+  "@id": "Topic",
+  "@type": "skos:Concept",
+  "skos:prefLabel": [
+    {
+      "@language": "ja",
+      "@value": "トピック"
+    },
+    {
+      "@language": "en",
+      "@value": "Topic"
+    }
+  ],
+  "skos:definition": [
+    {
+      "@language": "ja",
+      "@value": "配信のジャンル・テーマを示す分類タグ。ゲーム実況・歌・雑談・ASMR 等。Holodex API の topic_id に対応する分類体系で、1 配信に複数の Topic が紐づく場合がある。"
+    },
+    {
+      "@language": "en",
+      "@value": "A classification tag representing the genre or theme of a stream (gaming, music, talk, ASMR, etc.). Maps to the Holodex API topic_id taxonomy. A single Stream may be tagged with multiple Topics."
+    }
+  ],
+  "skos:altLabel": [
+    {
+      "@language": "ja",
+      "@value": "ジャンル"
+    },
+    {
+      "@language": "ja",
+      "@value": "カテゴリ"
+    },
+    {
+      "@language": "ja",
+      "@value": "配信ジャンル"
+    },
+    {
+      "@language": "en",
+      "@value": "Genre"
+    },
+    {
+      "@language": "en",
+      "@value": "Category"
+    },
+    {
+      "@language": "en",
+      "@value": "Tag"
+    }
+  ],
+  "skos:related": [
+    {
+      "@id": "Stream"
+    }
+  ],
+  "skos:inScheme": {
+    "@id": "VTuberDomain"
+  },
+  "dv:hub": "HUB_TOPIC",
+  "dv:business_key": "topic_id",
+  "dv:business_key_source": "Holodex video.topic_id (e.g., 'singing', 'minecraft')"
+}

@@ -1,0 +1,64 @@
+{
+  "@context": {
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "@base": "https://metamesh.dev/ontology/",
+    "dv": "https://metamesh.dev/ext/dv/"
+  },
+  "@id": "Clip",
+  "@type": "skos:Concept",
+  "skos:prefLabel": [
+    {
+      "@language": "ja",
+      "@value": "切り抜き"
+    },
+    {
+      "@language": "en",
+      "@value": "Clip"
+    }
+  ],
+  "skos:definition": [
+    {
+      "@language": "ja",
+      "@value": "元の配信 (Stream) の一部を切り出して編集された二次的な動画コンテンツ。切り抜き師 (clipper) と呼ばれる第三者が制作することが多い。元配信との派生関係を持ち、Holodex API では type='clip' として識別される。"
+    },
+    {
+      "@language": "en",
+      "@value": "A secondary video derived from a portion of an original Stream, often produced by a third party known as a clipper. Maintains a derivation relationship to the source Stream. Identified as type='clip' in the Holodex API."
+    }
+  ],
+  "skos:altLabel": [
+    {
+      "@language": "ja",
+      "@value": "切り抜き動画"
+    },
+    {
+      "@language": "ja",
+      "@value": "クリップ"
+    },
+    {
+      "@language": "en",
+      "@value": "Clip Video"
+    },
+    {
+      "@language": "en",
+      "@value": "Highlight"
+    }
+  ],
+  "skos:related": [
+    {
+      "@id": "Stream"
+    },
+    {
+      "@id": "Streamer"
+    }
+  ],
+  "skos:inScheme": {
+    "@id": "VTuberDomain"
+  },
+  "dv:hub": "HUB_CLIP",
+  "dv:business_key": "clip_video_id",
+  "dv:business_key_source": "Holodex video.id where type='clip'",
+  "dv:derived_from": "Stream (N:1, via LNK_CLIP_STREAM)"
+}

@@ -1,0 +1,83 @@
+{
+  "@context": {
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "@base": "https://metamesh.dev/ontology/",
+    "dv": "https://metamesh.dev/ext/dv/"
+  },
+  "@id": "Streamer",
+  "@type": "skos:Concept",
+  "skos:prefLabel": [
+    {
+      "@language": "ja",
+      "@value": "配信者"
+    },
+    {
+      "@language": "en",
+      "@value": "Streamer"
+    }
+  ],
+  "skos:definition": [
+    {
+      "@language": "ja",
+      "@value": "バーチャルアバターを用いて配信活動を行うキャラクター単位のエンティティ。中の人ではなく、視聴者から認識される配信キャラクターを 1 単位として扱う (中の人交代があっても同一 Streamer)。1 人の Streamer は複数の Channel (メイン + サブチャンネル) を所有しうる。事務所所属・個人勢の双方を含む。"
+    },
+    {
+      "@language": "en",
+      "@value": "A character-level entity that conducts streaming activities using a virtual avatar. The unit of identity is the recognized character (not the performer behind it); the same Streamer persists even if the inside performer changes. A single Streamer may own multiple Channels (main + sub). Includes both agency-affiliated talents and independent streamers."
+    }
+  ],
+  "skos:altLabel": [
+    {
+      "@language": "ja",
+      "@value": "VTuber"
+    },
+    {
+      "@language": "ja",
+      "@value": "ライバー"
+    },
+    {
+      "@language": "ja",
+      "@value": "バーチャルライバー"
+    },
+    {
+      "@language": "ja",
+      "@value": "タレント"
+    },
+    {
+      "@language": "en",
+      "@value": "VTuber"
+    },
+    {
+      "@language": "en",
+      "@value": "Virtual Streamer"
+    },
+    {
+      "@language": "en",
+      "@value": "Talent"
+    }
+  ],
+  "skos:related": [
+    {
+      "@id": "Channel"
+    },
+    {
+      "@id": "Organization"
+    },
+    {
+      "@id": "Collaboration"
+    },
+    {
+      "@id": "Stream"
+    }
+  ],
+  "skos:inScheme": {
+    "@id": "VTuberDomain"
+  },
+  "dv:hub": "HUB_STREAMER",
+  "dv:business_key": "streamer_id",
+  "dv:business_key_strategy": "暫定対応としてメインチャンネルの channel_id を流用して識別。将来的に streamer-level ID 体系 (org + character_name のハッシュ等) へ移行可能",
+  "dv:owns": "Channel (1:N)",
+  "dv:belongs_to": "Organization (N:1, optional)"
+}
