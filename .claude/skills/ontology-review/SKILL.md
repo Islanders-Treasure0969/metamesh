@@ -19,7 +19,7 @@ description: ユーザーが metamesh オントロジーの品質チェック・
 ## 前提条件
 
 - `mcp__metamesh__query_concept` が利用可能 (SPARQL SELECT / ASK モード)
-- 副作用ゼロ。`add_concept` / `add_relationship` は一切呼ばない
+- 副作用ゼロ。`mcp__metamesh__add_concept` / `mcp__metamesh__add_relationship` は一切呼ばない
 
 ## 診断チェックの SPARQL レシピ
 
@@ -159,10 +159,10 @@ SELECT ?relationship WHERE {
 検査対象: 7 concepts, 6 relationships
 
 ## ✅ Critical (要即修正)
-なし
+✅ 該当なし
 
 ## 🟠 Major (修正推奨)
-- **[同義語欠落]** `Channel` (チャンネル) — altLabel 未登録。「YouTube チャンネル」「サブチャンネル」等を `add_concept` で再登録すべし
+- **[同義語欠落]** `Channel` (チャンネル) — altLabel 未登録。「YouTube チャンネル」「サブチャンネル」等を `mcp__metamesh__add_concept` で再登録すべし
 - ...
 
 ## 🟡 Warning (検討)
@@ -213,7 +213,7 @@ User: 「定義抜けてる concept だけ見せて」
 Claude:
   → 「定義欠落」チェックの SPARQL のみ実行
   → 該当が空なら "✅ 全 concept に definition あり" と返す
-  → あれば list で返し、それぞれ "次の一手" として add_concept の呼び方例を添える
+  → あれば list で返し、それぞれ "次の一手" として mcp__metamesh__add_concept の呼び方例を添える
 ```
 
 ## 可視化との連携
