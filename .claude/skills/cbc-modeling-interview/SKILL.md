@@ -49,7 +49,7 @@ Ask the questions below in order. **Required** items must be answered; **optiona
 
 ### Minimal example
 
-```
+```text
 User: 「Streamer って概念を追加して」
 
 Claude: (Q1) URI として使う英語名は？
@@ -73,7 +73,7 @@ Claude: → mcp__metamesh__add_concept(
 
 ### Full example with DV mapping
 
-```
+```text
 User: 「コラボの概念を作りたい」
 
 Claude: (重複チェック) "コラボ" で query_concept → 既存 0 件
