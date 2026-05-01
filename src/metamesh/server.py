@@ -17,6 +17,7 @@ from metamesh.tools.generate_dbt_yaml import register as register_generate_dbt_y
 from metamesh.tools.generate_semantic_layer import (
     register as register_generate_semantic_layer,
 )
+from metamesh.tools.query_concept import register as register_query_concept
 
 
 def _ontology_root() -> Path:
@@ -31,6 +32,7 @@ mcp = FastMCP("metamesh")
 _root = _ontology_root()
 register_add_concept(mcp, ontology_root=_root)
 register_add_relationship(mcp, ontology_root=_root)
+register_query_concept(mcp, ontology_root=_root)
 register_generate_dbt_yaml(mcp, ontology_root=_root)
 register_generate_semantic_layer(mcp, ontology_root=_root)
 register_export_llm_context(mcp, ontology_root=_root)
