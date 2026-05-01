@@ -39,5 +39,10 @@
   },
   "dv:link": "LNK_COLLAB",
   "dv:cardinality": "N:M",
+  "dv:participants": [
+    "HUB_STREAMER",
+    "HUB_STREAM"
+  ],
+  "dv:business_key_source": "Holodex video.mentions[] + video.channel",
   "dv:role_attribute": "participant_role (owner | guest)"
 }

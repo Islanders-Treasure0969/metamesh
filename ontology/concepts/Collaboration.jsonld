@@ -3,8 +3,7 @@
     "skos": "http://www.w3.org/2004/02/skos/core#",
     "owl": "http://www.w3.org/2002/07/owl#",
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-    "@base": "https://metamesh.dev/ontology/",
-    "dv": "https://metamesh.dev/ext/dv/"
+    "@base": "https://metamesh.dev/ontology/"
   },
   "@id": "Collaboration",
   "@type": "skos:Concept",
@@ -21,11 +20,11 @@
   "skos:definition": [
     {
       "@language": "ja",
-      "@value": "複数の配信者が 1 つの配信に同時出演する関係性イベント。Holodex API では video.mentions[] フィールドで関連付けられる。配信主（owner）と出演者（mentions）の役割を区別する。"
+      "@value": "複数の配信者が 1 つの配信に同時出演する関係性イベント。Holodex API では video.mentions[] フィールドで関連付けられる。配信主 (owner) と出演者 (mentions) の役割を区別する。技術的な実装 (DV Link) の記述は participates_in 関係性側に集約してある。"
     },
     {
       "@language": "en",
-      "@value": "A relationship event in which multiple streamers appear together in a single stream. Surfaced via the video.mentions[] field on the Holodex API. The owner (broadcaster) role is distinguished from the guest (mentions) role."
+      "@value": "A relationship event in which multiple streamers appear together in a single stream. Surfaced via the video.mentions[] field on the Holodex API. The owner (broadcaster) role is distinguished from the guest (mentions) role. Technical implementation metadata (DV link) is kept on the participates_in relationship."
     }
   ],
   "skos:altLabel": [
@@ -64,13 +63,5 @@
   ],
   "skos:inScheme": {
     "@id": "VTuberDomain"
-  },
-  "dv:link": "LNK_COLLAB",
-  "dv:participants": [
-    "HUB_STREAMER",
-    "HUB_STREAM"
-  ],
-  "dv:cardinality": "N:M",
-  "dv:business_key_source": "Holodex video.mentions[]",
-  "dv:role_attribute": "participant_role (owner | guest)"
+  }
 }
