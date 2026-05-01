@@ -143,8 +143,14 @@ def sparql_query(
 ) -> dict[str, Any]:
     """Run a SPARQL query against the merged ontology graph.
 
-    Supports SELECT queries; other forms (ASK / CONSTRUCT) work but the
-    response shape is currently optimised for SELECT row results.
+    Auto-detects the query form and shapes the response accordingly:
+
+    - ``SELECT`` -> ``{type: "SELECT", columns, rows, count, truncated}``
+    - ``CONSTRUCT`` / ``DESCRIBE`` -> ``{type, triples: [[s, p, o], ...],
+      count, truncated}``. Useful for Skills that want a subgraph
+      (e.g. "all triples around Streamer") to render as Mermaid /
+      networkx / Cytoscape on the client side.
+    - ``ASK`` -> ``{type: "ASK", boolean}``
     """
     if not sparql or not sparql.strip():
         raise ValueError("sparql must be a non-empty string")
@@ -152,23 +158,53 @@ def sparql_query(
     graph = _load_full_graph(ontology_root)
 
     qres = graph.query(sparql)
-    columns = [str(v) for v in (qres.vars or [])]
-    rows: list[list[str | None]] = []
-    truncated = False
-    for row in qres:
-        if len(rows) >= limit:
-            truncated = True
-            break
-        rows.append([_format_term(t) for t in row])
+    qtype = qres.type  # "SELECT" | "CONSTRUCT" | "DESCRIBE" | "ASK"
 
-    return {
-        "mode": "sparql",
-        "sparql": sparql,
-        "columns": columns,
-        "rows": rows,
-        "count": len(rows),
-        "truncated": truncated,
-    }
+    if qtype == "SELECT":
+        columns = [str(v) for v in (qres.vars or [])]
+        rows: list[list[str | None]] = []
+        truncated = False
+        for row in qres:
+            if len(rows) >= limit:
+                truncated = True
+                break
+            rows.append([_format_term(t) for t in row])
+        return {
+            "mode": "sparql",
+            "type": "SELECT",
+            "sparql": sparql,
+            "columns": columns,
+            "rows": rows,
+            "count": len(rows),
+            "truncated": truncated,
+        }
+
+    if qtype in ("CONSTRUCT", "DESCRIBE"):
+        triples: list[list[str | None]] = []
+        truncated = False
+        for s, p, o in qres:
+            if len(triples) >= limit:
+                truncated = True
+                break
+            triples.append([_format_term(s), _format_term(p), _format_term(o)])
+        return {
+            "mode": "sparql",
+            "type": qtype,
+            "sparql": sparql,
+            "triples": triples,
+            "count": len(triples),
+            "truncated": truncated,
+        }
+
+    if qtype == "ASK":
+        return {
+            "mode": "sparql",
+            "type": "ASK",
+            "sparql": sparql,
+            "boolean": bool(qres),
+        }
+
+    raise ValueError(f"unsupported SPARQL query type: {qtype!r}")
 
 
 def _load_full_graph(ontology_root: Path) -> Graph:

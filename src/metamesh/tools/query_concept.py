@@ -29,17 +29,26 @@ def register(mcp: FastMCP, *, ontology_root: Path) -> None:
                 ``@id`` / ``skos:prefLabel`` (ja, en) / ``skos:altLabel``
                 (ja, en) / ``skos:definition`` (ja, en) を走査する。
                 マッチした field 群と該当 value の snippet を返す。
-            sparql: 生 SPARQL クエリ (SELECT 推奨)。merged ontology graph
+            sparql: 生 SPARQL クエリ。merged ontology graph
                 (concepts + relationships) に対して実行する。
+                ``SELECT`` / ``CONSTRUCT`` / ``DESCRIBE`` / ``ASK`` を
+                サポート。CONSTRUCT/DESCRIBE は subgraph を triples で
+                返すので、クライアント側 (Skill / LLM) が Mermaid や
+                グラフライブラリでレンダリングするユースケースに最適。
             limit: 返す最大件数 (default 20)。
 
         Returns:
             keyword モード:
                 ``{"mode": "keyword", "keyword", "matches": [...],
                    "count", "truncated"}``
-            sparql モード:
-                ``{"mode": "sparql", "sparql", "columns", "rows": [...],
-                   "count", "truncated"}``
+            sparql モード (SELECT):
+                ``{"mode": "sparql", "type": "SELECT", "sparql",
+                   "columns", "rows", "count", "truncated"}``
+            sparql モード (CONSTRUCT / DESCRIBE):
+                ``{"mode": "sparql", "type", "sparql",
+                   "triples": [[s, p, o], ...], "count", "truncated"}``
+            sparql モード (ASK):
+                ``{"mode": "sparql", "type": "ASK", "sparql", "boolean"}``
         """
         if (keyword is None) == (sparql is None):
             raise ValueError(

@@ -210,3 +210,87 @@ def test_sparql_empty_string_rejected(populated_root: Path) -> None:
 def test_sparql_whitespace_only_rejected(populated_root: Path) -> None:
     with pytest.raises(ValueError, match="non-empty"):
         sparql_query(ontology_root=populated_root, sparql="   \n  ")
+
+
+def test_sparql_select_response_includes_type_field(populated_root: Path) -> None:
+    res = sparql_query(
+        ontology_root=populated_root,
+        sparql="""
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        SELECT ?c WHERE { ?c a skos:Concept } LIMIT 1
+        """,
+    )
+    assert res["type"] == "SELECT"
+
+
+def test_sparql_construct_returns_triples(populated_root: Path) -> None:
+    """CONSTRUCT used by Skills to fetch a subgraph (e.g. neighborhood) for rendering."""
+    res = sparql_query(
+        ontology_root=populated_root,
+        sparql="""
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        CONSTRUCT { ?c skos:prefLabel ?l }
+        WHERE { ?c skos:prefLabel ?l . FILTER(LANG(?l) = "ja") }
+        """,
+    )
+    assert res["mode"] == "sparql"
+    assert res["type"] == "CONSTRUCT"
+    assert "triples" in res
+    assert "rows" not in res
+    # 3 concepts + 1 relationship in fixture, all with ja prefLabel
+    assert res["count"] == 4
+    # Each triple is [s, p, o] strings
+    for triple in res["triples"]:
+        assert len(triple) == 3
+        assert all(isinstance(t, str) for t in triple)
+
+
+def test_sparql_describe_returns_triples(populated_root: Path) -> None:
+    res = sparql_query(
+        ontology_root=populated_root,
+        sparql="DESCRIBE <https://metamesh.dev/ontology/Streamer>",
+    )
+    assert res["type"] == "DESCRIBE"
+    assert "triples" in res
+    # Streamer has many properties (labels, definition, alt labels, dv:*, etc.)
+    assert res["count"] > 5
+
+
+def test_sparql_construct_limit_truncates(populated_root: Path) -> None:
+    res = sparql_query(
+        ontology_root=populated_root,
+        sparql="""
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        CONSTRUCT { ?c skos:prefLabel ?l }
+        WHERE { ?c skos:prefLabel ?l }
+        """,
+        limit=2,
+    )
+    assert res["count"] == 2
+    assert res["truncated"] is True
+
+
+def test_sparql_ask_returns_boolean_true(populated_root: Path) -> None:
+    res = sparql_query(
+        ontology_root=populated_root,
+        sparql="""
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        ASK { <https://metamesh.dev/ontology/Streamer> a skos:Concept }
+        """,
+    )
+    assert res["type"] == "ASK"
+    assert res["boolean"] is True
+    assert "triples" not in res
+    assert "rows" not in res
+
+
+def test_sparql_ask_returns_boolean_false(populated_root: Path) -> None:
+    res = sparql_query(
+        ontology_root=populated_root,
+        sparql="""
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        ASK { <https://metamesh.dev/ontology/NonExistent> a skos:Concept }
+        """,
+    )
+    assert res["type"] == "ASK"
+    assert res["boolean"] is False
