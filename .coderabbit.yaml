@@ -1,0 +1,71 @@
+# CodeRabbit AI configuration
+# Docs: https://docs.coderabbit.ai/guides/configure-coderabbit
+language: ja
+early_access: false
+
+reviews:
+  profile: chill                # less noisy than `assertive`
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  collapse_walkthrough: false
+  poem: false                   # disable haiku - reduces noise
+
+  auto_review:
+    enabled: true
+    drafts: false               # skip draft PRs
+
+  path_filters:
+    - "!uv.lock"
+    - "!output/**"              # generated artifacts (regenerable)
+    - "!.venv/**"
+    - "!**/__pycache__/**"
+    - "!**/.pytest_cache/**"
+
+  path_instructions:
+    - path: "src/metamesh/tools/**"
+      instructions: |
+        These are MCP tool definitions registered with FastMCP.
+        Verify:
+        - The docstring matches the actual function signature.
+        - The tool returns a JSON-serializable type (dict / str).
+        - Required vs optional args are clearly marked.
+        - The function is idempotent or its side-effects are documented.
+    - path: "src/metamesh/generators/**"
+      instructions: |
+        Pure functions over the ontology directory; no MCP dependency.
+        Verify:
+        - The function is deterministic given the same ontology root.
+        - Output shape is documented in the module docstring.
+        - Shared helpers from _common.py are reused, not duplicated.
+    - path: "src/metamesh/queries/**"
+      instructions: |
+        Read-side queries (keyword + SPARQL). Verify:
+        - SPARQL query type detection (SELECT / CONSTRUCT / DESCRIBE / ASK)
+          is preserved when adding new code paths.
+        - No mutation of the loaded graph.
+    - path: "ontology/**/*.jsonld"
+      instructions: |
+        SKOS / OWL JSON-LD files (Single Source of Truth).
+        Direct hand-edits should be rare - normally these come from
+        add_concept / add_relationship MCP tools. If a hand-edit
+        appears, verify rdflib can round-trip the file without errors
+        and that all skos:related / rdfs:domain / rdfs:range references
+        resolve to existing concepts.
+    - path: ".claude/skills/**/SKILL.md"
+      instructions: |
+        Claude Skill definitions. Verify:
+        - YAML frontmatter has a clear `description` with natural-language
+          triggers (e.g. "X したい" と言われたとき).
+        - References to MCP tools use the `mcp__metamesh__<name>` prefix.
+        - Anti-patterns / pitfalls are documented.
+    - path: "tests/**"
+      instructions: |
+        pytest suite. Verify:
+        - JSON-LD assertions go through rdflib (no raw string matching
+          on generated content).
+        - Tests are isolated via tmp_path fixtures.
+        - One MCP tool = one test file is the convention.
+
+chat:
+  auto_reply: true
