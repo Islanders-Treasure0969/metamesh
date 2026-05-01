@@ -1,0 +1,40 @@
+[project]
+name = "metamesh"
+version = "0.1.0"
+description = "MCP server that turns business metadata into W3C-standard ontologies (SKOS/OWL/JSON-LD) and propagates them downstream."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Kiichi Iwashita" },
+]
+dependencies = [
+    "mcp>=1.2.0",
+    "rdflib>=7.0.0",
+    "pyld>=2.0.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+metamesh = "metamesh.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/metamesh"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
