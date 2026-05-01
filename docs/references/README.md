@@ -1,32 +1,66 @@
-# 参考資料ポインタ
+# 参考文献
 
-本リポジトリは設計判断の根拠となる外部資料を **コピーせずに参照する**。
-原典の更新を取りこぼさないため、必要なときに該当パスを `Read` で開くこと。
+metamesh の設計判断の元になっている文献群。詳細な設計議論は
+`docs/PROJECT_CONTEXT.md` を参照。
 
-## ローカル原典 (`/Users/iwashita/practical_data_vault/`)
+## Data Vault モデリング (CBC / NBR)
 
-### 設計の出発点 (必読)
+CBC (Core Business Concept) Form と NBR (Natural Business Relationship)
+Form は **Ensemble Logical Modeling (ELM)** という Data Vault 系の
+モデリング手法に由来する。`add_concept` のインタビュー設計は CBC Form を、
+`add_relationship` の引数設計は NBR Form をそれぞれ模している。
 
-| ファイル | 内容 | 関連する metamesh 機能 |
-|---|---|---|
-| `chapter_12_design_process.md` | モデルストーミング全体プロセス | `add_concept` のインタビュー設計 |
-| `chapter_12_detail_cbc_nbr_process.md` | CBC/NBR フォームの詳細 | インタビュー質問項目の根拠 |
-| `chapter_13_ontology_taxonomy.md` | DV と オントロジーの接続論 | 拡張名前空間 `dv:` の設計 |
-| `research_part3_framework.md` | Ontology-Driven Metadata Pipeline | プロジェクト全体の理論 |
+- **Hans Hultgren** _Modeling the Agile Data Warehouse with Data Vault_
+  (Genesee Academy, 2012) — Ensemble Logical Modeling の原典。
+  CBC/NBR フォームの定義
+- **Daniel Linstedt & Michael Olschimke** _Building a Scalable Data
+  Warehouse with Data Vault 2.0_ (Morgan Kaufmann, 2015) — DV 2.0 の
+  Hub / Link / Satellite 物理設計
+- **Daniel Linstedt** _Super Charge Your Data Warehouse_ (CreateSpace,
+  2011) — Hash key / Audit column の元ネタ
 
-### 周辺 (必要に応じて)
+## Dimensional モデリング (BEAM)
 
-| ファイル | 内容 |
-|---|---|
-| `research_part1_problem.md` | メタデータの 5 つの断絶 (問題提起) |
-| `research_part2_current_state.md` | 既存技術の整理 |
-| `research_part4_5_implementation_research.md` | 実装調査 |
-| `chapter_06_raw_vault.md` / `chapter_07_business_vault.md` / `chapter_08_information_mart.md` | DV の各層 (Step 2 以降の `generate_dbt_yaml` で参照) |
-| `chapter_03_extended_concepts.md` | DV 拡張概念 (Multi-Active Sat 等) |
-| `appendix_d_essences.md` / `appendix_e_common_mistakes.md` | DV のエッセンスと典型的な失敗例 |
+`generate_dbt_yaml` の "dim_" / "fct_" 命名や Kimball 拡張 namespace は
+以下を想定。
+
+- **Ralph Kimball & Margy Ross** _The Data Warehouse Toolkit, 3rd ed._
+  (Wiley, 2013)
+- **Lawrence Corr & Jim Stagnitto** _Agile Data Warehouse Design_
+  (DecisionOne Press, 2011) — BEAM (Business Event Analysis & Modeling)
+  と 7Ws フレームワーク
+
+## オントロジー / セマンティックウェブ
+
+metamesh の SSoT フォーマットは W3C 標準のみで構成する。
+
+- **W3C** [SKOS Reference](https://www.w3.org/TR/skos-reference/) —
+  概念定義の語彙 (skos:Concept / prefLabel / altLabel / definition / etc.)
+- **W3C** [OWL 2 Web Ontology Language Primer](https://www.w3.org/TR/owl2-primer/) —
+  ObjectProperty / domain / range / inverseOf
+- **W3C** [JSON-LD 1.1](https://www.w3.org/TR/json-ld11/) — RDF の
+  JSON シリアライゼーション (本リポジトリのファイル形式)
+- **W3C** [SHACL](https://www.w3.org/TR/shacl/) — RDF の制約バリデーション
+  (将来導入予定)
+
+## Data Catalog / Metadata
+
+- **DAMA International** _DMBOK 2_ (Technics Publications, 2017) —
+  ビジネスメタデータ・テクニカルメタデータ・オペレーショナルメタデータの
+  3 分類
+
+## 既存ツール (互換ターゲット / 比較対象)
+
+- **Protégé** — 標準的な OWL エディタ。metamesh の jsonld を直接
+  import 可能。深い分析はこちらに委譲する設計
+- **WebVOWL** — OWL 可視化。`http://vowl.visualdataweb.org/webvowl.html`
+  に jsonld をアップロードすればグラフが見られる
+- **dbt Semantic Layer (MetricFlow)** — `generate_semantic_layer` の出力先
+- **dbt-core** — `generate_dbt_yaml` の出力先
+- **MCP (Model Context Protocol)** — Claude Desktop / Code との
+  通信プロトコル (本サーバーが実装)
 
 ## プロジェクト権威ドキュメント
 
-`docs/PROJECT_CONTEXT.md` — Claude.ai での議論を引き継ぐためのコンテキスト。
-原典は `/Users/iwashita/metadata_oss/PROJECT_CONTEXT.md`。
-変更があったときは本リポジトリ側にも反映する。
+- `docs/PROJECT_CONTEXT.md` — フレームワーク全体の問題提起・設計原則・
+  技術選定の議論。設計判断に迷ったら最初に開く
