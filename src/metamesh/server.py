@@ -11,6 +11,7 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 from metamesh.tools.add_concept import register as register_add_concept
+from metamesh.tools.add_relationship import register as register_add_relationship
 
 
 def _ontology_root() -> Path:
@@ -22,7 +23,9 @@ def _ontology_root() -> Path:
 
 
 mcp = FastMCP("metamesh")
-register_add_concept(mcp, ontology_root=_ontology_root())
+_root = _ontology_root()
+register_add_concept(mcp, ontology_root=_root)
+register_add_relationship(mcp, ontology_root=_root)
 
 
 def main() -> None:
