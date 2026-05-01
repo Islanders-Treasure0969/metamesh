@@ -43,9 +43,10 @@
 │  Claude Desktop / Code                            │
 │  ├─ Skills (.claude/skills/)                       │
 │  │  ├─ cbc-modeling-interview                      │
-│  │  └─ nbr-identification                          │
-│  │     (ontology-review, dv-implementation-design,  │
-│  │      ontology-visualize は今後追加予定)            │
+│  │  ├─ nbr-identification                          │
+│  │  └─ ontology-visualize                          │
+│  │     (ontology-review, dv-implementation-design   │
+│  │      は今後追加予定)                              │
 │       ↕ MCP                                        │
 │  metamesh server  (薄い primitive)                 │
 │  ├─ Write : add_concept, add_relationship          │
@@ -180,9 +181,10 @@ SELECT ?rel ?domain ?range WHERE {
    [WebVOWL](http://vowl.visualdataweb.org/webvowl.html)) は metamesh の
    出力する JSON-LD を直接食える。深い分析はそちらに任せた方が劣化しない
 
-将来は `ontology-visualize` Skill を追加して、「Mermaid で見せて」「N:M
-関係だけ図示して」等の自然言語要求を SPARQL に変換 → 可視化までを 1
-プロンプトでやれるようにする予定。
+この設計の具体実装が `ontology-visualize` Skill。「Mermaid で見せて」「N:M
+関係だけ図示して」「Streamer 周辺だけ」等の自然言語要求を SPARQL CONSTRUCT
+に変換 → triples を Mermaid に変換 → チャットに直貼り、を 1 プロンプトで
+完結する。`.claude/skills/ontology-visualize/SKILL.md` 参照。
 
 ## オントロジー直接編集 (advanced)
 
@@ -227,7 +229,8 @@ uv run ruff check .
 | 3a | `generate_semantic_layer` / `export_llm_context` / `query_concept` | ✅ |
 | 3b | `cbc-modeling-interview` Skill | ✅ |
 | 3c | `nbr-identification` Skill | ✅ |
-| 4 | 追加 Skills (`ontology-review`, `dv-implementation-design`, `ontology-visualize`) | 未着手 |
+| 3d | `ontology-visualize` Skill | ✅ |
+| 4 | 追加 Skills (`ontology-review`, `dv-implementation-design`) | 未着手 |
 | 5 | Holodex API 実データでの検証 | 未着手 |
 | 6 | SHACL バリデーション | 未着手 |
 | 7 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
