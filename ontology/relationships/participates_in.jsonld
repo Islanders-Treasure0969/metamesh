@@ -1,0 +1,43 @@
+{
+  "@context": {
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "@base": "https://metamesh.dev/ontology/",
+    "dv": "https://metamesh.dev/ext/dv/"
+  },
+  "@id": "participates_in",
+  "@type": "owl:ObjectProperty",
+  "skos:prefLabel": [
+    {
+      "@language": "ja",
+      "@value": "配信に出演する"
+    },
+    {
+      "@language": "en",
+      "@value": "participates in"
+    }
+  ],
+  "skos:definition": [
+    {
+      "@language": "ja",
+      "@value": "配信者が配信に出演する関係 (コラボを含む)。配信主 (owner) も出演者の 1 人として扱う。Holodex video.mentions[] および video.channel 由来。"
+    },
+    {
+      "@language": "en",
+      "@value": "A streamer appears in a stream (including collaborations). The broadcaster (owner) is also treated as a participant. Sourced from Holodex video.mentions[] and video.channel."
+    }
+  ],
+  "rdfs:domain": {
+    "@id": "Streamer"
+  },
+  "rdfs:range": {
+    "@id": "Stream"
+  },
+  "skos:inScheme": {
+    "@id": "VTuberDomain"
+  },
+  "dv:link": "LNK_COLLAB",
+  "dv:cardinality": "N:M",
+  "dv:role_attribute": "participant_role (owner | guest)"
+}

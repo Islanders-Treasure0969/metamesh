@@ -1,0 +1,42 @@
+{
+  "@context": {
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "@base": "https://metamesh.dev/ontology/",
+    "dv": "https://metamesh.dev/ext/dv/"
+  },
+  "@id": "hosts_stream",
+  "@type": "owl:ObjectProperty",
+  "skos:prefLabel": [
+    {
+      "@language": "ja",
+      "@value": "配信をホストする"
+    },
+    {
+      "@language": "en",
+      "@value": "hosts stream"
+    }
+  ],
+  "skos:definition": [
+    {
+      "@language": "ja",
+      "@value": "チャンネル上で 1 回の配信イベントが行われる関係。各 Stream は必ず 1 つの Channel に所属する。Holodex video.channel_id 由来。"
+    },
+    {
+      "@language": "en",
+      "@value": "A streaming event takes place on a channel. Each Stream belongs to exactly one Channel. Sourced from Holodex video.channel_id."
+    }
+  ],
+  "rdfs:domain": {
+    "@id": "Channel"
+  },
+  "rdfs:range": {
+    "@id": "Stream"
+  },
+  "skos:inScheme": {
+    "@id": "VTuberDomain"
+  },
+  "dv:link": "LNK_STREAM_CHANNEL",
+  "dv:cardinality": "1:N"
+}
