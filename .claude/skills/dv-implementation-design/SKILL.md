@@ -26,13 +26,13 @@ description: ユーザーがオントロジーから Data Vault の物理設計 
 
 | 形式 | 用途 | 強み |
 |---|---|---|
-| **Markdown 表** (default) | レビュー / ドキュメント | チャット内で可読、レビューしやすい |
+| **Markdown 表** (既定) | レビュー / ドキュメント | チャット内で可読、レビューしやすい |
 | **Snowflake DDL** | Snowflake への直接適用 | `MD5()`, `TIMESTAMP_NTZ`, `VARIANT` 等を活用 |
 | **BigQuery DDL** | BigQuery への直接適用 | `TO_HEX(MD5(x))`, `TIMESTAMP` 型 |
 | **汎用 SQL DDL** | 移植性重視 | `VARCHAR(N)`, ANSI SQL に近い |
 | **dbt モデル雛形** | dbt プロジェクトへの組み込み | `dbt_utils.generate_surrogate_key`, ref/source 関数 |
 
-ユーザーが指定しなければ Markdown を default として出し、続けて他形式が
+ユーザーが指定しなければ Markdown を既定として出し、続けて他形式が
 必要か聞く。
 
 ## 物理設計の規約
@@ -63,10 +63,11 @@ description: ユーザーがオントロジーから Data Vault の物理設計 
 
 ### Hash key 生成ポリシー
 
-- アルゴリズム: **MD5** (デフォルト) / SHA1 (代替、衝突耐性ニーズで切替)
+- アルゴリズム: **MD5** (既定) / SHA1 (代替、衝突耐性ニーズで切替)
 - 入力前処理: `lower(trim(<business_key>))` で揺れを吸収
-- Link hash key: 関連する Hub hash key を区切り子 (`||` または `~`) で連結 →
-  さらに MD5
+- Link hash key: 関連する Hub hash key をチルダ区切り (`~`) で連結 →
+  さらに MD5。**区切り子は環境を跨いで `~` 一択に固定すること** (既定が
+  揺れると同じビジネスキーから別 hash が生まれて整合性が壊れる)
 
 ```sql
 -- Hub
@@ -123,7 +124,7 @@ md5(
 
 ## 出力テンプレート
 
-### Markdown 表 (default)
+### Markdown 表 (既定)
 
 ````markdown
 # DV 物理設計 — VTuber ドメイン
@@ -179,7 +180,7 @@ CREATE OR REPLACE TABLE lnk_streamer_channel (
 );
 ```
 
-(注: Snowflake は FK 制約を保存するが enforcement は default off。意図を
+(注: Snowflake は FK 制約を保存するが、enforcement は既定で off。意図を
 ドキュメント化する用途で記載)
 
 ### BigQuery DDL
@@ -239,17 +240,27 @@ SELECT * FROM renamed
     )
 }}
 
+-- NOTE: source は「Streamer × Channel の対応関係を持つステージング層」を
+-- 想定している。Holodex の場合、channels に owner_streamer_id 相当の
+-- フィールドを staging で付与しておく必要がある。プロジェクトの実情に
+-- 合わせて source 名と列名を置換すること。
 WITH source AS (
-    SELECT * FROM {{ source('holodex', 'channels') }}
+    SELECT
+        streamer_id,    -- domain (Streamer) のビジネスキー
+        channel_id      -- range (Channel) のビジネスキー
+    FROM {{ source('holodex_staging', 'streamer_channel_map') }}
 ),
 
 hashed AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['lower(trim(channel_id))', "lower(trim(channel_id))"]) }} AS streamer_channel_hk,
-        {{ dbt_utils.generate_surrogate_key(['lower(trim(channel_id))']) }} AS streamer_hk,
-        {{ dbt_utils.generate_surrogate_key(['lower(trim(channel_id))']) }} AS channel_hk,
-        CURRENT_TIMESTAMP() AS load_dts,
-        'holodex_api'       AS rec_src
+        {{ dbt_utils.generate_surrogate_key([
+            'lower(trim(streamer_id))',
+            'lower(trim(channel_id))'
+        ]) }}                                                       AS streamer_channel_hk,
+        {{ dbt_utils.generate_surrogate_key(['lower(trim(streamer_id))']) }} AS streamer_hk,
+        {{ dbt_utils.generate_surrogate_key(['lower(trim(channel_id))']) }}  AS channel_hk,
+        CURRENT_TIMESTAMP()                                         AS load_dts,
+        'holodex_api'                                               AS rec_src
     FROM source
 )
 
@@ -260,8 +271,10 @@ SELECT * FROM hashed
 {% endif %}
 ```
 
-(注: source の取り方とビジネスキーの選び方はプロジェクトごとに違うので、
-雛形として提示し、ユーザーの dbt project に合わせて調整するよう案内)
+(注: source の取り方とビジネスキー列名はプロジェクトごとに違う。雛形は
+domain / range の双方が同じ source 行から取れる前提。Holodex のように
+channel と streamer が事実上同居している場合と、別 source の場合とで
+書き方が変わる)
 
 ## 例
 
@@ -304,9 +317,10 @@ Claude:
 ## アンチパターン
 
 - ❌ **オントロジーに無いビジネスキーを勝手に発明する** — `dv:business_key`
-   が空の concept は SPARQL 結果に入れない。空ならフォールバックで
-   `<concept_id_snake>_id` (例: `streamer_id`) を使うが、その時は注意書きを
-   出力に添えること
+   が空の concept があった場合は **生成を中断**し、ユーザーに
+   `mcp__metamesh__add_concept` でビジネスキーを追加するよう案内する。
+   フォールバック (`<concept_id_snake>_id` で適当に埋める) は **絶対に
+   しない**。間違ったキーで Hub を作ると下流が壊れる方が高コスト
 - ❌ **audit columns (`load_dts` / `rec_src`) を省略する** — DV の根幹。
    どの形式でも必ず含める
 - ❌ **Sat (Satellite) テーブルを勝手に生成する** — descriptive attributes
@@ -319,5 +333,5 @@ Claude:
    とどめる。実装は別 Skill / 手動
 - ❌ **Hash key の入力前処理を省略する** — `lower(trim(...))` を必ず通す。
    省略すると "ABC " と "abc" が別 hash になり、整合性が壊れる
-- ❌ **どの DDL dialect か聞かずに decide する** — Snowflake / BigQuery /
+- ❌ **どの DDL 方言か聞かずに決める** — Snowflake / BigQuery /
    汎用 SQL は型・関数が違う。明示確認を取る
