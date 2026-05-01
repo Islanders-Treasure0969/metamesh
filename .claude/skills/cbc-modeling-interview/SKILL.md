@@ -3,18 +3,18 @@ name: cbc-modeling-interview
 description: Use when the user wants to define a new business concept in their metamesh ontology, model their domain, or capture a piece of business vocabulary as structured metadata. Conducts a Core Business Concept (CBC) interview adapted from Ensemble Logical Modeling, then registers the result via the metamesh `add_concept` MCP tool. Triggers on phrases like "新しい概念を定義したい", "ドメインモデリングを始めたい", "X って概念を追加して", "オントロジーに entity を入れたい".
 ---
 
-# CBC Modeling Interview
+# CBC (概念) モデリングインタビュー
 
 Captures a single business concept through a structured interview, then persists it as SKOS JSON-LD via metamesh's `add_concept` tool.
 
 The questions are adapted from the **Core Business Concept (CBC) Form** used in Ensemble Logical Modeling (Data Vault methodology). The point is to elicit the metadata that humans usually keep in their heads — synonyms, hierarchy, intended physical implementation — *before* it gets lost downstream (PROJECT_CONTEXT.md §1.2 第①断絶点).
 
-## Prerequisites
+## 前提条件
 
 - The metamesh MCP server must be connected. Confirm by checking that `mcp__metamesh__add_concept` is available.
 - If the ontology might already contain a similar concept, run `mcp__metamesh__query_concept` (keyword mode) first to surface duplicates / near-matches before creating a new entry.
 
-## Interview flow
+## インタビューの流れ
 
 Ask the questions below in order. **Required** items must be answered; **optional** items can be skipped if the user says "skip" / "なし" / silence. Do not ask all 9 at once — go one at a time, react to the answer, and use prior answers to make follow-ups specific.
 
@@ -38,16 +38,16 @@ Ask the questions below in order. **Required** items must be answered; **optiona
 
 オントロジー自体は方法論非依存 (W3C 標準だけで完結) が原則 (PROJECT_CONTEXT.md §2.2)。DV/Kimball 拡張は「将来の物理実装の hint」として残すもので、まだ決まってないなら skip してよい。後から `add_concept` を呼び直せば上書きできる。
 
-## After the interview
+## インタビュー後の流れ
 
 1. **重複チェック**: 入力された `concept_id` と類似する既存概念がないか `mcp__metamesh__query_concept` で確認 (keyword モードで concept_id と pref_label_ja を投げる)
 2. **登録**: `mcp__metamesh__add_concept` を呼ぶ。引数は会話で集めた値をそのまま渡す
 3. **確認**: 保存されたファイルパスをユーザーに見せる (例: `Saved: /path/to/ontology/concepts/Streamer.jsonld`)
 4. **次の一手**: 関係性 (NBR) もモデリングするか聞く。YES なら `nbr-identification` Skill を案内 (まだ無ければ「次は `add_relationship` で繋いでいきましょう」とだけ言う)
 
-## Examples
+## 例
 
-### Minimal example
+### 最小例
 
 ```text
 User: 「Streamer って概念を追加して」
@@ -71,12 +71,12 @@ Claude: → mcp__metamesh__add_concept(
 → Saved: ontology/concepts/Streamer.jsonld
 ```
 
-### Full example with DV mapping
+### DV マッピング含む完全例
 
 ```text
 User: 「コラボの概念を作りたい」
 
-Claude: (重複チェック) "コラボ" で query_concept → 既存 0 件
+Claude: (重複チェック) "コラボ" で mcp__metamesh__query_concept → 既存 0 件
 (Q1-9) を会話で順に
 → mcp__metamesh__add_concept(
   concept_id="Collaboration",
@@ -91,7 +91,7 @@ Claude: (重複チェック) "コラボ" で query_concept → 既存 0 件
 )
 ```
 
-## Anti-patterns
+## アンチパターン
 
 - ❌ 9 個の質問を 1 メッセージで投げない (圧迫感、答える気を削ぐ)
 - ❌ 既存類似概念を確認せずに新規作成する (オントロジーの分裂)

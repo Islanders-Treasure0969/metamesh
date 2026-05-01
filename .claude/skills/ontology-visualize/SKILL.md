@@ -1,9 +1,9 @@
 ---
 name: ontology-visualize
-description: Use when the user wants to see the metamesh ontology as a graph (Mermaid / Graphviz / table) - either the whole thing, a focused subgraph around one concept, or a filtered view (e.g. only N:M relationships, only DV hubs). Composes a SPARQL CONSTRUCT against `mcp__metamesh__query_concept`, then renders the returned triples inline as a Markdown / Mermaid diagram in chat. Triggers on phrases like "オントロジーを図で見せて", "Streamer 周辺のグラフ", "Mermaid で可視化", "DV Link 一覧を図に", "concept relationships を見たい".
+description: ユーザーが metamesh オントロジーをグラフ (Mermaid / Graphviz / 表) で見たいとき — 全体俯瞰・特定概念の近傍・フィルタ抽出 (例: N:M 関係性だけ、DV Hub 一覧) のいずれにも対応する。`mcp__metamesh__query_concept` に SPARQL CONSTRUCT を投げて triples を取得し、チャット内に Markdown / Mermaid 図としてインラインで描画する。トリガー例: 「オントロジーを図で見せて」「Streamer 周辺のグラフ」「Mermaid で可視化」「DV Link 一覧を図に」「概念間の関係を見たい」。
 ---
 
-# Ontology Visualization
+# オントロジー可視化
 
 metamesh は **組み込みの可視化コマンドを持たない**。代わりに、この Skill が
 ユーザーの自然言語要求を **SPARQL CONSTRUCT** に変換 → triples を受け取り →
@@ -12,7 +12,7 @@ metamesh は **組み込みの可視化コマンドを持たない**。代わり
 「可視化機能はオプショナルでいい、SPARQL があれば LLM が必要な形に都度変換
 できる」という metamesh の設計思想 (PROJECT_CONTEXT.md §2.2) の具体化。
 
-## Prerequisites
+## 前提条件
 
 - `mcp__metamesh__query_concept` が利用可能 (CONSTRUCT / SELECT 両モード)
 - ユーザーのチャット環境が Mermaid をレンダリングできる
@@ -149,7 +149,7 @@ WHERE {
 
 ## Mermaid 変換ルール
 
-`query_concept(sparql=...)` の戻り値 (CONSTRUCT モード) は
+`mcp__metamesh__query_concept(sparql=...)` の戻り値 (CONSTRUCT モード) は
 `{type: "CONSTRUCT", triples: [[s, p, o], ...]}`。これを以下のロジックで
 Mermaid に変換：
 
@@ -162,7 +162,7 @@ Mermaid に変換：
 
 ### 出力テンプレート (モード A/B/C)
 
-````
+````markdown
 ```mermaid
 graph LR
     Streamer["配信者<br/>Streamer"]
@@ -177,7 +177,7 @@ graph LR
 
 ### 出力テンプレート (モード D 階層)
 
-````
+````markdown
 ```mermaid
 graph TB
     Streamer["配信者"]
@@ -186,28 +186,28 @@ graph TB
 ```
 ````
 
-## After visualization
+## 可視化後の流れ
 
 1. **Mermaid を chat に直接貼る** (ファイル出力しない)。ユーザーは即座に図として見られる
 2. **要点をテキストでも添える**: 「N=12 nodes, M=18 edges、最も繋がってるのは Streamer (4 edges)」のような統計
 3. **次の一手を提案**: 「特定概念にフォーカスして見たい？」「DDL に変換する `dv-implementation-design` を起動する？」など、自然な続き
 
-## Examples
+## 例
 
-### Example 1: 全体俯瞰
+### 例 1: 全体俯瞰
 
 ```text
 User: 「オントロジー全体を Mermaid で見せて」
 
 Claude:
   → モード A 判定
-  → query_concept(sparql=<モード A 全体俯瞰の SPARQL>)
+  → mcp__metamesh__query_concept(sparql=<モード A 全体俯瞰の SPARQL>)
   → triples を受け取って Mermaid 化
   → チャットに ```mermaid ブロックを貼る
   → "7 concepts, 6 relationships。Streamer が最ハブ (4 connections)" と添える
 ```
 
-### Example 2: フォーカス
+### 例 2: フォーカス
 
 ```text
 User: 「Stream の周辺だけ見せて」
@@ -215,11 +215,11 @@ User: 「Stream の周辺だけ見せて」
 Claude:
   → モード B、対象 = Stream
   → SPARQL の FILTER 部分を <https://metamesh.dev/ontology/Stream> に置換
-  → query_concept(...)
+  → mcp__metamesh__query_concept(...)
   → Mermaid 化 (Stream を中心に半径 1 の subgraph)
 ```
 
-### Example 3: フィルタ + 表
+### 例 3: フィルタ + 表
 
 ```text
 User: 「N:M の関係性だけ表で」
@@ -230,7 +230,7 @@ Claude:
   → 結果を Markdown 表として直接貼る
 ```
 
-## Anti-patterns
+## アンチパターン
 
 - ❌ **Mermaid を毎回ファイルに書き出す** — チャットに直貼りで十分。ファイル
    出力したいなら `generate_dbt_yaml` のような generator ツールがあるべき
