@@ -3,6 +3,15 @@
 > このドキュメントはClaude.aiでの議論を引き継ぐためのコンテキストです。
 > Claude Desktop / Claude Code でこのファイルを読み込んで実装を開始してください。
 
+> **読者向け注記 (重要)**:
+> このドキュメントは metamesh フレームワークの設計議論を保存している。
+> 本文中の **§4「実証テーマ：VTuber 分析基盤」と §6「次にやること」の VTuber
+> 関連項目** は、設計の出発点としての記録であり、**実際の VTuber 実装は別
+> リポジトリ
+> [Islanders-Treasure0969/vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics)
+> に分離済み**。フレームワーク本体 (本リポジトリ) はドメイン非依存で、VTuber
+> 固有のデータ・スクリプトは含まない。
+
 ---
 
 ## 0. このプロジェクトの一言説明
@@ -11,6 +20,7 @@
 セマンティックレイヤーとAIエージェントに自動的に届けるMCPサーバーOSS」**
 
 実証テーマ：VTuber（ホロライブ・にじさんじ）分析基盤
+→ 実装は [vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics) に分離
 
 ---
 

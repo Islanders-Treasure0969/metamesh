@@ -3,7 +3,10 @@
 > モデルストーミング（DV / Dimensional）で生まれるビジネスメタデータを
 > **W3C 標準 (SKOS / OWL / JSON-LD)** で 1 箇所に保存し、
 > **MCP 経由で Claude が直接読み書き** することで、
-> dbt / Semantic Layer / AI/LLM すべてに同じ意味を届ける OSS。
+> dbt / Semantic Layer / AI/LLM すべてに同じ意味を届ける**フレームワーク**。
+
+metamesh は**ドメイン非依存**の OSS。実装例は別リポジトリで管理する。
+**現在の参照実装: [vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics)** (VTuber 配信メタデータをこのフレームワークで構造化したもの)。
 
 ## 解こうとしている問題
 
@@ -33,6 +36,7 @@
 | **MCP は薄く、データは厚く** | 書き込み 2 / 読み取り 1 が core。残りは optional な bulk export |
 | **ワークフローは Skills へ** | CBC インタビュー・NBR 設計・DV 実装方針などは Claude Skills として配布。コードに固めない |
 | **下流生成はクライアント側で都度合成** | 「Mermaid で可視化」「dbt schema.yml に変換」は Claude が SPARQL で取って即時生成すれば済む |
+| **ドメインデータは外部に持つ** | metamesh 自身は概念・関係性を保持しない。ユーザーが `METAMESH_ONTOLOGY_ROOT` で自分のオントロジーディレクトリを指す |
 
 ## 構成要素
 
@@ -52,8 +56,10 @@
 │  ├─ Write : add_concept, add_relationship          │
 │  └─ Read  : query_concept (SPARQL: SELECT/         │
 │              CONSTRUCT/DESCRIBE/ASK)               │
-│       ↕                                            │
-│  ontology/  (SKOS/OWL/JSON-LD = SSoT, Git 管理)    │
+│       ↕ METAMESH_ONTOLOGY_ROOT                     │
+│  ontology/ (ユーザー自身が用意するディレクトリ)      │
+│    ├── concepts/*.jsonld                          │
+│    └── relationships/*.jsonld                     │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -68,9 +74,26 @@ uv sync --extra dev
 uv run pytest          # 動作確認 (69 tests)
 ```
 
-### 2. Claude Desktop に登録
+### 2. オントロジーディレクトリを用意する
 
-`~/Library/Application Support/Claude/claude_desktop_config.json` に追記:
+metamesh 自身はドメインデータを持たない。自分のオントロジーディレクトリを
+作る (空でも OK、最初の `add_concept` で生成される):
+
+```bash
+mkdir -p ~/my-ontology/{concepts,relationships}
+export METAMESH_ONTOLOGY_ROOT=~/my-ontology
+```
+
+または既存の例を借りる:
+
+```bash
+git clone https://github.com/Islanders-Treasure0969/vtuber-analytics
+export METAMESH_ONTOLOGY_ROOT=$PWD/vtuber-analytics/ontology
+```
+
+### 3. Claude Desktop に登録
+
+`~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
@@ -80,15 +103,18 @@ uv run pytest          # 動作確認 (69 tests)
       "args": [
         "--directory", "/path/to/metamesh",
         "run", "python", "-m", "metamesh.server"
-      ]
+      ],
+      "env": {
+        "METAMESH_ONTOLOGY_ROOT": "/path/to/your/ontology"
+      }
     }
   }
 }
 ```
 
-`uv` のフルパスは `which uv` で取得（PATH を継承しない環境があるため絶対パス推奨）。
+`uv` のフルパスは `which uv` で取得 (PATH を継承しない環境があるため絶対パス推奨)。
 
-### 3. 最初の概念を作る
+### 4. 最初の概念を作る
 
 Claude にこう話しかけるだけ:
 
@@ -96,9 +122,9 @@ Claude にこう話しかけるだけ:
 「Streamer って概念を metamesh に追加して」
 ```
 
-`cbc-modeling-interview` Skill が起動して、Claude が CBC Form 相当の質問を
-順番に投げてくれる。回答すれば自動的に `ontology/concepts/Streamer.jsonld`
-が生成される。
+`cbc-modeling-interview` Skill が起動して、Claude が CBC Form 相当の
+質問を順番に投げてくれる。回答すれば自動的に
+`<METAMESH_ONTOLOGY_ROOT>/concepts/Streamer.jsonld` が生成される。
 
 ## MCP ツール一覧
 
@@ -123,9 +149,8 @@ CI で一括書き出しする等の用途には便利。**通常運用では `q
 | `generate_semantic_layer` | オントロジー → MetricFlow YAML (semantic_models + entities) |
 | `export_llm_context` | オントロジー → Markdown digest (LLM プロンプト貼付用) |
 
-サンプル出力: [`output/dbt/schema.yml`](output/dbt/schema.yml) / 
-[`output/semantic_layer/metricflow.yml`](output/semantic_layer/metricflow.yml) /
-[`output/llm_context/context.md`](output/llm_context/context.md)
+実出力サンプルは [vtuber-analytics の `output/`](https://github.com/Islanders-Treasure0969/vtuber-analytics/tree/main/output)
+を参照。
 
 ## SPARQL 実例集
 
@@ -149,6 +174,7 @@ ORDER BY ?hub
 ### 特定概念の近傍 subgraph (CONSTRUCT)
 
 ```sparql
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 CONSTRUCT { ?s ?p ?o }
 WHERE {
     { <https://metamesh.dev/ontology/Streamer> ?p ?o . BIND(<https://metamesh.dev/ontology/Streamer> AS ?s) }
@@ -190,7 +216,7 @@ SELECT ?rel ?domain ?range WHERE {
 
 オントロジーは生 JSON-LD ファイルなので、好きなツールで開いて手で書ける:
 
-- **Protégé** で `ontology/concepts/*.jsonld` を順次 import
+- **Protégé** で `<METAMESH_ONTOLOGY_ROOT>/concepts/*.jsonld` を順次 import
 - **WebVOWL** に JSON-LD をアップロードして可視化
 - 任意のテキストエディタ + git diff レビュー
 
@@ -198,60 +224,27 @@ SELECT ?rel ?domain ?range WHERE {
 保存するので、これらツール経由で書いた場合は別途整合性確認を推奨
 (`uv run pytest` で構造テスト)。
 
-## 実証ドメイン: VTuber 分析基盤
+## 参照実装: vtuber-analytics
 
-> このドメインの初期オントロジーとデータ検証スクリプトは
-> **[Holodex](https://holodex.net)** ([API ドキュメント](https://docs.holodex.net/))
-> が公開している VTuber 配信メタデータを参照している。Holodex の運営と
-> コミュニティに感謝。本リポジトリは Holodex のデータを再配布せず、
-> オントロジー上の `dv:business_key_source` で参照するエンティティ識別子
-> (`channel.id`, `video.id` 等) のスキーマ定義のみを保持する。
+[Islanders-Treasure0969/vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics)
+は metamesh のフレームワークを VTuber 分析に適用したリポジトリ。
 
-`ontology/` には Holodex API のスキーマを想定した **VTuber 分析の初期
-オントロジー** が入っている:
+- 7 概念 + 6 関係性のオントロジー (Streamer / Channel / Stream / Org / Collaboration / Clip / Topic)
+- metamesh が生成した dbt / MetricFlow / LLM context のサンプル
+- Holodex API でオントロジーの `dv:business_key` を実データ検証するスクリプト
 
-- 7 概念: `Streamer` / `Channel` / `Stream` / `Organization` / `Collaboration` / `Clip` / `Topic`
-- 6 関係性: `owns_channel` / `hosts_stream` / `belongs_to_org` / `participates_in` / `derived_from` / `categorized_as`
-- 13 個の DV Hub/Link 候補が `dv:` 拡張で記録済み
-
-これをそのまま下流ツールに流せば、`output/` 以下の 3 つのサンプル成果物が再生成できる。
-
-### Holodex API での実データ検証
-
-`scripts/validate_holodex.py` が、上記オントロジーの各 concept が宣言する
-`dv:business_key` フィールドが実際の Holodex API レスポンスに本当に
-存在するかを少量サンプル (既定: チャンネル 5 件 × 各 10 動画) で確認する:
-
-```bash
-# (1) 環境変数で:
-export HOLODEX_API_KEY=<your-key>
-uv run python scripts/validate_holodex.py
-
-# (2) .env ファイル:
-cp .env.example .env
-# .env に key を書く
-uv run python scripts/validate_holodex.py
-
-# (3) 1Password CLI 参照 (key を平文で残さない):
-echo 'HOLODEX_API_KEY=op://Personal/Holodex/credential' > .env
-uv run python scripts/validate_holodex.py
-```
-
-無料 API key は https://holodex.net (Account Settings → API) から取得。
-レポートは `output/validation/holodex_coverage.md` に出る。
+「metamesh をどう使うか」の具体例として、また自身の VTuber 分析プロジェクト
+として、独立したリポジトリで運用される。
 
 ## 開発
 
 ```bash
 uv sync --extra dev    # ruff / pytest / pytest-asyncio
-uv run pytest -v       # 69 tests (= 6 add_concept + 7 add_relationship +
-                       #  15 query_concept + 11 generate_dbt_yaml +
-                       #  9 generate_semantic_layer + 15 export_llm_context +
-                       #  6 SPARQL form coverage)
+uv run pytest -v       # 69 tests
 uv run ruff check .
 ```
 
-## ロードマップ
+## ロードマップ (フレームワーク本体)
 
 | Step | スコープ | 状態 |
 |---|---|---|
@@ -263,14 +256,15 @@ uv run ruff check .
 | 3d | `ontology-visualize` Skill | ✅ |
 | 3e | `ontology-review` Skill | ✅ |
 | 3f | `dv-implementation-design` Skill | ✅ |
-| 5 | Holodex API 実データでの検証 | 未着手 |
-| 6 | SHACL バリデーション | 未着手 |
-| 7 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
+| 4 | SHACL バリデーション | 未着手 |
+| 5 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
+| 6 | PyPI 公開 (`pip install metamesh`) | 未着手 |
 
 ## 関連資料
 
 - [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) — フレームワーク全体の設計根拠
 - [`docs/references/`](docs/references/) — Data Vault / SKOS / OWL の参考資料
+- [vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics) — 参照実装
 
 ## License
 
