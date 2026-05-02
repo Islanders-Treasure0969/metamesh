@@ -209,6 +209,30 @@ SELECT ?rel ?domain ?range WHERE {
 
 これをそのまま下流ツールに流せば、`output/` 以下の 3 つのサンプル成果物が再生成できる。
 
+### Holodex API での実データ検証
+
+`scripts/validate_holodex.py` が、上記オントロジーの各 concept が宣言する
+`dv:business_key` フィールドが実際の Holodex API レスポンスに本当に
+存在するかを少量サンプル (既定: チャンネル 5 件 × 各 10 動画) で確認する:
+
+```bash
+# (1) 環境変数で:
+export HOLODEX_API_KEY=<your-key>
+uv run python scripts/validate_holodex.py
+
+# (2) .env ファイル:
+cp .env.example .env
+# .env に key を書く
+uv run python scripts/validate_holodex.py
+
+# (3) 1Password CLI 参照 (key を平文で残さない):
+echo 'HOLODEX_API_KEY=op://Personal/Holodex/credential' > .env
+uv run python scripts/validate_holodex.py
+```
+
+無料 API key は https://holodex.net (Account Settings → API) から取得。
+レポートは `output/validation/holodex_coverage.md` に出る。
+
 ## 開発
 
 ```bash
