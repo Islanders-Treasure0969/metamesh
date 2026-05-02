@@ -200,8 +200,15 @@ SELECT ?rel ?domain ?range WHERE {
 
 ## 実証ドメイン: VTuber 分析基盤
 
-`ontology/` には [Holodex API](https://holodex.stoplight.io/) を想定した
-**VTuber 分析の初期オントロジー** が入っている:
+> このドメインの初期オントロジーとデータ検証スクリプトは
+> **[Holodex](https://holodex.net)** ([API ドキュメント](https://docs.holodex.net/))
+> が公開している VTuber 配信メタデータを参照している。Holodex の運営と
+> コミュニティに感謝。本リポジトリは Holodex のデータを再配布せず、
+> オントロジー上の `dv:business_key_source` で参照するエンティティ識別子
+> (`channel.id`, `video.id` 等) のスキーマ定義のみを保持する。
+
+`ontology/` には Holodex API のスキーマを想定した **VTuber 分析の初期
+オントロジー** が入っている:
 
 - 7 概念: `Streamer` / `Channel` / `Stream` / `Organization` / `Collaboration` / `Clip` / `Topic`
 - 6 関係性: `owns_channel` / `hosts_stream` / `belongs_to_org` / `participates_in` / `derived_from` / `categorized_as`

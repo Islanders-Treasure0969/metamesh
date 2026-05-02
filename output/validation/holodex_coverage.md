@@ -1,5 +1,7 @@
 # metamesh ontology — Holodex API 検証レポート
 
+データソース: [Holodex](https://holodex.net) ([API ドキュメント](https://docs.holodex.net/))。本レポートは Holodex API レスポンスのスキーマ整合性を確認する目的で、ごく少量のサンプルメタデータを掲載している。
+
 サンプル: **5 channels** (org=`Hololive`, type=`vtuber`), **50 videos** total。
 
 各行は metamesh concept が宣言する `dv:business_key` フィールドが、実際の Holodex API レスポンスに存在するかを確認している。
