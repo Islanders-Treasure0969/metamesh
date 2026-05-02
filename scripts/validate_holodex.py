@@ -2,7 +2,7 @@
 
 VTuber ドメインの各 concept が宣言している `dv:business_key` フィールドが
 実際の Holodex API レスポンスに存在するかを、少量のサンプル
-(default: 5 channels × 10 videos) で確認し、Markdown レポートを書き出す。
+(既定: チャンネル 5 件 × 各 10 動画) で確認し、Markdown レポートを書き出す。
 
 Usage:
     # (1) 環境変数で:
@@ -307,6 +307,23 @@ def render_report(
 # ---------------------------------------------------------------------------
 
 
+def _positive_int_setting(raw: str, *, name: str) -> int:
+    """設定値を正の整数として解釈する。失敗時はトレースバックではなく
+    `SystemExit` で短く分かりやすく終わる。"""
+    try:
+        value = int(raw)
+    except ValueError as e:
+        raise SystemExit(
+            f"{name}=`{raw}` is not a valid integer. "
+            "Set it to a positive integer (e.g. 5) or unset to use the default."
+        ) from e
+    if value <= 0:
+        raise SystemExit(
+            f"{name}=`{raw}` must be a positive integer (got {value})."
+        )
+    return value
+
+
 def main() -> int:
     api_key = _resolve_api_key()
     file_env = _load_env_file(ENV_PATH)
@@ -315,8 +332,14 @@ def main() -> int:
         return os.environ.get(key) or file_env.get(key) or default
 
     org = cfg("HOLODEX_VALIDATE_ORG", "Hololive")
-    n_channels = int(cfg("HOLODEX_VALIDATE_CHANNELS", "5"))
-    n_videos_per_channel = int(cfg("HOLODEX_VALIDATE_VIDEOS", "10"))
+    n_channels = _positive_int_setting(
+        cfg("HOLODEX_VALIDATE_CHANNELS", "5"),
+        name="HOLODEX_VALIDATE_CHANNELS",
+    )
+    n_videos_per_channel = _positive_int_setting(
+        cfg("HOLODEX_VALIDATE_VIDEOS", "10"),
+        name="HOLODEX_VALIDATE_VIDEOS",
+    )
 
     print(f"Fetching {n_channels} channels (org={org}, type=vtuber)...", file=sys.stderr)
     channels = fetch_channels(api_key, org=org, limit=n_channels)

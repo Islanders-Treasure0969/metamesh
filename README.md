@@ -213,7 +213,7 @@ SELECT ?rel ?domain ?range WHERE {
 
 `scripts/validate_holodex.py` が、上記オントロジーの各 concept が宣言する
 `dv:business_key` フィールドが実際の Holodex API レスポンスに本当に
-存在するかを少量サンプル (default: 5 channels × 10 videos) で確認する:
+存在するかを少量サンプル (既定: チャンネル 5 件 × 各 10 動画) で確認する:
 
 ```bash
 # (1) 環境変数で:
