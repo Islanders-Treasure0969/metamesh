@@ -1,5 +1,11 @@
 """metamesh ontology の Holodex API 実データ検証スクリプト。
 
+Holodex (https://holodex.net) は VTuber 配信メタデータを公開している
+コミュニティ運営のサービス。本スクリプトはその API
+(https://docs.holodex.net/) を利用し、metamesh 側のオントロジーが
+宣言する `dv:business_key` フィールドが実データと整合するかを検証する
+ためのもの。Holodex への明示的な感謝とリンクを README に記載済み。
+
 VTuber ドメインの各 concept が宣言している `dv:business_key` フィールドが
 実際の Holodex API レスポンスに存在するかを、少量のサンプル
 (既定: チャンネル 5 件 × 各 10 動画) で確認し、Markdown レポートを書き出す。
@@ -289,6 +295,11 @@ def render_report(
 ) -> str:
     lines = [
         "# metamesh ontology — Holodex API 検証レポート",
+        "",
+        "データソース: [Holodex](https://holodex.net) "
+        "([API ドキュメント](https://docs.holodex.net/))。"
+        "本レポートは Holodex API レスポンスのスキーマ整合性を確認する目的で、"
+        "ごく少量のサンプルメタデータを掲載している。",
         "",
         f"サンプル: **{n_channels} channels** (org=`{org}`, type=`vtuber`), "
         f"**{n_videos} videos** total。",
