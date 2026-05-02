@@ -41,6 +41,15 @@ REPORT_PATH = REPO_ROOT / "output" / "validation" / "holodex_coverage.md"
 ENV_PATH = REPO_ROOT / ".env"
 HTTP_TIMEOUT_SEC = 30
 
+# Identifies this client to Holodex's edge. Holodex sits behind Cloudflare,
+# whose bot management blocks the default `Python-urllib/*` UA at the edge
+# (HTTP 403). A descriptive UA both bypasses the block and is good API
+# citizenship.
+USER_AGENT = (
+    "metamesh-validator/0.1 "
+    "(+https://github.com/Islanders-Treasure0969/metamesh)"
+)
+
 
 # ---------------------------------------------------------------------------
 # Config (env var or .env file, env var wins)
@@ -130,7 +139,8 @@ def _resolve_api_key() -> str:
 # ---------------------------------------------------------------------------
 
 
-def _http_get_json(url: str, *, headers: dict[str, str]) -> Any:
+def _http_get_json(url: str, *, api_key: str) -> Any:
+    headers = {"X-APIKEY": api_key, "User-Agent": USER_AGENT}
     req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SEC) as resp:
         return json.loads(resp.read())
@@ -138,7 +148,7 @@ def _http_get_json(url: str, *, headers: dict[str, str]) -> Any:
 
 def fetch_channels(api_key: str, *, org: str, limit: int) -> list[dict[str, Any]]:
     qs = urllib.parse.urlencode({"org": org, "limit": limit, "type": "vtuber"})
-    return _http_get_json(f"{API_BASE}/channels?{qs}", headers={"X-APIKEY": api_key})
+    return _http_get_json(f"{API_BASE}/channels?{qs}", api_key=api_key)
 
 
 def fetch_videos_for_channel(
@@ -147,7 +157,7 @@ def fetch_videos_for_channel(
     qs = urllib.parse.urlencode({"limit": limit, "include": "mentions"})
     return _http_get_json(
         f"{API_BASE}/channels/{channel_id}/videos?{qs}",
-        headers={"X-APIKEY": api_key},
+        api_key=api_key,
     )
 
 
