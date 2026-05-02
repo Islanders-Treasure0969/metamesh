@@ -15,3 +15,7 @@ build/
 
 # OS
 .DS_Store
+
+# Local secrets / per-user config (loaded by scripts/validate_holodex.py etc.)
+.env
+.env.local
