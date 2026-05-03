@@ -351,6 +351,31 @@ def test_sparql_update_keyword_in_comment_allowed(populated_root: Path) -> None:
     assert res["type"] == "SELECT"
 
 
+def test_sparql_iri_with_hash_does_not_bypass_update_detection(populated_root: Path) -> None:
+    """SECURITY (PR #24 review pass 2): `<http://.../core#>` の `#` を
+    コメント開始と誤認させて Update キーワードをバイパスさせない。
+
+    具体的には `PREFIX skos: <http://.../core#> INSERT DATA { ... }` を
+    一行で書いた場合、コメント除去を IRI 中和より前に行うと
+    `INSERT DATA { ... }` が消えて検証を通ってしまう。本テストはそれを
+    防ぐ regression。
+    """
+    with pytest.raises(ValueError, match="SPARQL Update keyword 'INSERT' is not allowed"):
+        sparql_query(
+            ontology_root=populated_root,
+            sparql='PREFIX skos: <http://www.w3.org/2004/02/skos/core#> INSERT DATA { <https://metamesh.dev/ontology/Hacked> a skos:Concept }',
+        )
+
+
+def test_sparql_iri_with_hash_in_comment_position_still_safe(populated_root: Path) -> None:
+    """IRI 内の # が複数連続するケース (DELETE 含む) も同様にバイパスされない。"""
+    with pytest.raises(ValueError, match="SPARQL Update keyword 'DELETE' is not allowed"):
+        sparql_query(
+            ontology_root=populated_root,
+            sparql='PREFIX a: <http://example.com/v#> PREFIX b: <http://example.org/sub#> DELETE WHERE { ?s ?p ?o }',
+        )
+
+
 def test_sparql_ask_returns_boolean_false(populated_root: Path) -> None:
     res = sparql_query(
         ontology_root=populated_root,

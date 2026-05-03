@@ -147,17 +147,30 @@ _FORBIDDEN_SPARQL_UPDATE_RE = re.compile(
 
 
 def _strip_sparql_literals_and_comments(sparql: str) -> str:
-    """文字列リテラル・コメントを潰す (キーワード検出の false positive 抑止)。
+    """文字列リテラル・IRI 参照・コメントを潰す (キーワード検出の false positive 抑止)。
 
-    例: ``"INSERT がリテラル内にある"`` を Update と誤検知させない。
-    厳密な SPARQL パーサではないが、Update キーワードが識別子位置で出てくる
-    パターンを実用上カバーする。
+    例: ``"INSERT がリテラル内にある"`` や IRI 内の ``#`` を Update と誤検知
+    させない。厳密な SPARQL パーサではないが、Update キーワードが識別子
+    位置で出てくるパターンを実用上カバーする。
+
+    **順序が重要**: コメント除去 (``#[^\\n]*``) を最初にやると、IRI
+    ``<http://.../core#>`` の ``#`` 以降が消えて、同一行の後続トークン
+    (``INSERT`` 等) も巻き込まれる。これは read-only バリデーションの
+    バイパスになる (`PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    INSERT DATA { ... }` が "PREFIX skos: <http://www.w3.org/2004/02/skos/core"
+    として通る)。
+
+    そのため: 文字列リテラル → IRI 参照 → コメントの順で中和する。
     """
-    cleaned = re.sub(r"#[^\n]*", "", sparql)              # # から行末
-    cleaned = re.sub(r'""".*?"""', '""', cleaned, flags=re.DOTALL)
+    # (1) 文字列リテラル (triple-quoted は先に、長い順)
+    cleaned = re.sub(r'""".*?"""', '""', sparql, flags=re.DOTALL)
     cleaned = re.sub(r"'''.*?'''", "''", cleaned, flags=re.DOTALL)
     cleaned = re.sub(r'"[^"\n\\]*(?:\\.[^"\n\\]*)*"', '""', cleaned)
     cleaned = re.sub(r"'[^'\n\\]*(?:\\.[^'\n\\]*)*'", "''", cleaned)
+    # (2) IRI 参照 (`#` を含みうる; コメント除去より前に潰す)
+    cleaned = re.sub(r"<[^>\n]*>", "<>", cleaned)
+    # (3) コメント (# から行末) — IRI 中和後なので安全
+    cleaned = re.sub(r"#[^\n]*", "", cleaned)
     return cleaned
 
 
