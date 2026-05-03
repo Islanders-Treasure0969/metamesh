@@ -12,6 +12,7 @@ Two modes:
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -135,6 +136,60 @@ def _snippet(text: str, needle: str, context: int = 60) -> str:
 # ---------------------------------------------------------------------------
 
 
+# SPARQL Update キーワード (W3C SPARQL 1.1 Update 仕様より)。
+# query_concept は SKILL.md / docstring で read-only を契約しているため、
+# Update 系を実装層で物理的にブロックする (in-memory rdflib Graph に対する
+# 一時的なミューテーションでも、契約と挙動の乖離を避ける)。
+_FORBIDDEN_SPARQL_UPDATE_RE = re.compile(
+    r"\b(INSERT|DELETE|DROP|LOAD|CLEAR|CREATE|COPY|MOVE|ADD|MODIFY|WITH)\b",
+    re.IGNORECASE,
+)
+
+
+def _strip_sparql_literals_and_comments(sparql: str) -> str:
+    """文字列リテラル・IRI 参照・コメントを潰す (キーワード検出の false positive 抑止)。
+
+    例: ``"INSERT がリテラル内にある"`` や IRI 内の ``#`` を Update と誤検知
+    させない。厳密な SPARQL パーサではないが、Update キーワードが識別子
+    位置で出てくるパターンを実用上カバーする。
+
+    **順序が重要**: コメント除去 (``#[^\\n]*``) を最初にやると、IRI
+    ``<http://.../core#>`` の ``#`` 以降が消えて、同一行の後続トークン
+    (``INSERT`` 等) も巻き込まれる。これは read-only バリデーションの
+    バイパスになる (`PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    INSERT DATA { ... }` が "PREFIX skos: <http://www.w3.org/2004/02/skos/core"
+    として通る)。
+
+    そのため: 文字列リテラル → IRI 参照 → コメントの順で中和する。
+    """
+    # (1) 文字列リテラル (triple-quoted は先に、長い順)
+    cleaned = re.sub(r'""".*?"""', '""', sparql, flags=re.DOTALL)
+    cleaned = re.sub(r"'''.*?'''", "''", cleaned, flags=re.DOTALL)
+    cleaned = re.sub(r'"[^"\n\\]*(?:\\.[^"\n\\]*)*"', '""', cleaned)
+    cleaned = re.sub(r"'[^'\n\\]*(?:\\.[^'\n\\]*)*'", "''", cleaned)
+    # (2) IRI 参照 (`#` を含みうる; コメント除去より前に潰す)
+    cleaned = re.sub(r"<[^>\n]*>", "<>", cleaned)
+    # (3) コメント (# から行末) — IRI 中和後なので安全
+    cleaned = re.sub(r"#[^\n]*", "", cleaned)
+    return cleaned
+
+
+def _validate_read_only_sparql(sparql: str) -> None:
+    """SPARQL Update (INSERT/DELETE/DROP 等) を拒否する。
+
+    query_concept は SELECT / CONSTRUCT / DESCRIBE / ASK のみサポートする
+    契約。違反した場合は ValueError を投げて graph に届く前に止める。
+    """
+    cleaned = _strip_sparql_literals_and_comments(sparql)
+    match = _FORBIDDEN_SPARQL_UPDATE_RE.search(cleaned)
+    if match:
+        raise ValueError(
+            f"SPARQL Update keyword '{match.group(0).upper()}' is not allowed. "
+            "query_concept is read-only; use SELECT / CONSTRUCT / DESCRIBE / ASK "
+            "only."
+        )
+
+
 def sparql_query(
     *,
     ontology_root: Path,
@@ -142,6 +197,12 @@ def sparql_query(
     limit: int = 100,
 ) -> dict[str, Any]:
     """Run a SPARQL query against the merged ontology graph.
+
+    **Read-only**: SPARQL Update (INSERT / DELETE / DROP / LOAD / CLEAR /
+    CREATE / COPY / MOVE / ADD / MODIFY / WITH) は実装層で拒否する。
+    metamesh は in-memory graph を毎回再構築するためミューテーションは
+    JSON-LD ファイルに永続化されないが、Skill 契約 (read-only) と挙動の
+    乖離を避けるため明示的にバリデートする。
 
     Auto-detects the query form and shapes the response accordingly:
 
@@ -154,6 +215,7 @@ def sparql_query(
     """
     if not sparql or not sparql.strip():
         raise ValueError("sparql must be a non-empty string")
+    _validate_read_only_sparql(sparql)
 
     graph = _load_full_graph(ontology_root)
 

@@ -284,6 +284,98 @@ def test_sparql_ask_returns_boolean_true(populated_root: Path) -> None:
     assert "rows" not in res
 
 
+def test_sparql_insert_rejected(populated_root: Path) -> None:
+    """SPARQL Update INSERT は read-only 契約に反するので拒否 (PR #24 Critical)。"""
+    with pytest.raises(ValueError, match="SPARQL Update keyword 'INSERT' is not allowed"):
+        sparql_query(
+            ontology_root=populated_root,
+            sparql="""
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+            INSERT DATA {
+                <https://metamesh.dev/ontology/Hacked> a skos:Concept .
+            }
+            """,
+        )
+
+
+def test_sparql_delete_rejected(populated_root: Path) -> None:
+    with pytest.raises(ValueError, match="SPARQL Update keyword 'DELETE' is not allowed"):
+        sparql_query(
+            ontology_root=populated_root,
+            sparql="""
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+            DELETE WHERE { ?s ?p ?o }
+            """,
+        )
+
+
+def test_sparql_drop_rejected(populated_root: Path) -> None:
+    with pytest.raises(ValueError, match="SPARQL Update keyword 'DROP' is not allowed"):
+        sparql_query(
+            ontology_root=populated_root,
+            sparql="DROP ALL",
+        )
+
+
+def test_sparql_clear_rejected(populated_root: Path) -> None:
+    with pytest.raises(ValueError, match="SPARQL Update keyword 'CLEAR' is not allowed"):
+        sparql_query(
+            ontology_root=populated_root,
+            sparql="CLEAR DEFAULT",
+        )
+
+
+def test_sparql_update_keyword_in_string_literal_allowed(populated_root: Path) -> None:
+    """文字列リテラル内の "INSERT" は false positive にせず通す。"""
+    res = sparql_query(
+        ontology_root=populated_root,
+        sparql="""
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        SELECT ?c WHERE { ?c skos:prefLabel "INSERT という名前ではない" }
+        """,
+    )
+    # クエリは valid (該当 0 件で問題なし)
+    assert res["count"] == 0
+
+
+def test_sparql_update_keyword_in_comment_allowed(populated_root: Path) -> None:
+    """コメント内の Update キーワードは false positive にしない。"""
+    res = sparql_query(
+        ontology_root=populated_root,
+        sparql="""
+        # INSERT のテストではなく単に SELECT
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        SELECT ?c WHERE { ?c a skos:Concept } LIMIT 1
+        """,
+    )
+    assert res["type"] == "SELECT"
+
+
+def test_sparql_iri_with_hash_does_not_bypass_update_detection(populated_root: Path) -> None:
+    """SECURITY (PR #24 review pass 2): `<http://.../core#>` の `#` を
+    コメント開始と誤認させて Update キーワードをバイパスさせない。
+
+    具体的には `PREFIX skos: <http://.../core#> INSERT DATA { ... }` を
+    一行で書いた場合、コメント除去を IRI 中和より前に行うと
+    `INSERT DATA { ... }` が消えて検証を通ってしまう。本テストはそれを
+    防ぐ regression。
+    """
+    with pytest.raises(ValueError, match="SPARQL Update keyword 'INSERT' is not allowed"):
+        sparql_query(
+            ontology_root=populated_root,
+            sparql='PREFIX skos: <http://www.w3.org/2004/02/skos/core#> INSERT DATA { <https://metamesh.dev/ontology/Hacked> a skos:Concept }',
+        )
+
+
+def test_sparql_iri_with_hash_in_comment_position_still_safe(populated_root: Path) -> None:
+    """IRI 内の # が複数連続するケース (DELETE 含む) も同様にバイパスされない。"""
+    with pytest.raises(ValueError, match="SPARQL Update keyword 'DELETE' is not allowed"):
+        sparql_query(
+            ontology_root=populated_root,
+            sparql='PREFIX a: <http://example.com/v#> PREFIX b: <http://example.org/sub#> DELETE WHERE { ?s ?p ?o }',
+        )
+
+
 def test_sparql_ask_returns_boolean_false(populated_root: Path) -> None:
     res = sparql_query(
         ontology_root=populated_root,
