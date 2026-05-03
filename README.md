@@ -260,7 +260,7 @@ uv run ruff check .
 | 3g | `beam-modeling-interview` Skill (Kimball 系入口) | ✅ |
 | 4a | `dimension-fact-identification` Skill ([#19](https://github.com/Islanders-Treasure0969/metamesh/issues/19)) | 未着手 |
 | 4b | `star-schema-design` Skill ([#20](https://github.com/Islanders-Treasure0969/metamesh/issues/20)) | 未着手 |
-| 4c | 複数 extension サポート ([#21](https://github.com/Islanders-Treasure0969/metamesh/issues/21)) | 未着手 |
+| 4c | 複数 extension サポート ([#21](https://github.com/Islanders-Treasure0969/metamesh/issues/21)) | ✅ |
 | 5 | SHACL バリデーション | 未着手 |
 | 6 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
 | 7 | PyPI 公開 (`pip install metamesh`) | 未着手 |
