@@ -158,3 +158,120 @@ def test_invalid_concept_id_rejected(store: ConceptStore) -> None:
             scheme=None,
             extension=None,
         )
+
+
+def test_multiple_extensions_coexist(store: ConceptStore) -> None:
+    """DV と Kimball 拡張を同じ Concept に共存させる (Issue #21)。"""
+    path = store.save_concept(
+        concept_id="Streamer",
+        pref_label_ja="配信者",
+        definition_ja="VTuber 個人を表す概念",
+        pref_label_en=None,
+        definition_en=None,
+        alt_labels_ja=[],
+        alt_labels_en=[],
+        broader=None,
+        narrower=[],
+        related=[],
+        scheme=None,
+        extension=[
+            {"namespace": "dv", "data": {"hub": "HUB_STREAMER", "business_key": "channel_id"}},
+            {"namespace": "kimball", "data": {"dimension": "dim_streamer", "scd_type": 2}},
+        ],
+    )
+
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    # Both namespaces present in @context
+    assert raw["@context"]["dv"] == "https://metamesh.dev/ext/dv/"
+    assert raw["@context"]["kimball"] == "https://metamesh.dev/ext/kimball/"
+    # Both extensions' data merged into the document
+    assert raw["dv:hub"] == "HUB_STREAMER"
+    assert raw["dv:business_key"] == "channel_id"
+    assert raw["kimball:dimension"] == "dim_streamer"
+    assert raw["kimball:scd_type"] == 2
+
+
+def test_multiple_extensions_same_namespace_last_wins(store: ConceptStore) -> None:
+    """同 namespace を二重に渡した場合は last-wins (incremental overlay 用途)。"""
+    path = store.save_concept(
+        concept_id="Streamer",
+        pref_label_ja="配信者",
+        definition_ja="x",
+        pref_label_en=None,
+        definition_en=None,
+        alt_labels_ja=[],
+        alt_labels_en=[],
+        broader=None,
+        narrower=[],
+        related=[],
+        scheme=None,
+        extension=[
+            {"namespace": "dv", "data": {"hub": "HUB_OLD"}},
+            {"namespace": "dv", "data": {"hub": "HUB_NEW", "business_key": "id"}},
+        ],
+    )
+
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    assert raw["dv:hub"] == "HUB_NEW"  # later overrides earlier
+    assert raw["dv:business_key"] == "id"  # later-only key still present
+
+
+def test_single_extension_dict_still_works(store: ConceptStore) -> None:
+    """Backward compat: pre-#21 callers passing a single dict keep working."""
+    path = store.save_concept(
+        concept_id="Channel",
+        pref_label_ja="チャンネル",
+        definition_ja="x",
+        pref_label_en=None,
+        definition_en=None,
+        alt_labels_ja=[],
+        alt_labels_en=[],
+        broader=None,
+        narrower=[],
+        related=[],
+        scheme=None,
+        extension={"namespace": "dv", "data": {"hub": "HUB_CHANNEL"}},
+    )
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    assert raw["dv:hub"] == "HUB_CHANNEL"
+    assert "kimball:dimension" not in raw
+
+
+def test_invalid_extension_type_rejected(store: ConceptStore) -> None:
+    with pytest.raises(TypeError, match="extension must be"):
+        store.save_concept(
+            concept_id="Bad",
+            pref_label_ja="x",
+            definition_ja="x",
+            pref_label_en=None,
+            definition_en=None,
+            alt_labels_ja=[],
+            alt_labels_en=[],
+            broader=None,
+            narrower=[],
+            related=[],
+            scheme=None,
+            extension="not a dict or list",  # type: ignore[arg-type]
+        )
+
+
+def test_unknown_namespace_in_list_still_rejected(store: ConceptStore) -> None:
+    """混在 list の中に unknown namespace があれば全体が落ちる (atomicity)。"""
+    with pytest.raises(ValueError, match="unknown extension namespace"):
+        store.save_concept(
+            concept_id="Mixed",
+            pref_label_ja="x",
+            definition_ja="x",
+            pref_label_en=None,
+            definition_en=None,
+            alt_labels_ja=[],
+            alt_labels_en=[],
+            broader=None,
+            narrower=[],
+            related=[],
+            scheme=None,
+            extension=[
+                {"namespace": "dv", "data": {"hub": "HUB_X"}},
+                {"namespace": "bogus", "data": {"x": 1}},
+            ],
+        )

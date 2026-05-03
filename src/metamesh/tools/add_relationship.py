@@ -27,7 +27,7 @@ def register(mcp: FastMCP, *, ontology_root: Path) -> None:
         definition_en: str | None = None,
         inverse_of: str | None = None,
         scheme: str | None = None,
-        extension: dict[str, Any] | None = None,
+        extension: dict[str, Any] | list[dict[str, Any]] | None = None,
     ) -> str:
         """Register a business relationship (OWL ObjectProperty + SKOS metadata).
 
@@ -41,9 +41,15 @@ def register(mcp: FastMCP, *, ontology_root: Path) -> None:
             definition_en: 英語の定義文。
             inverse_of: 逆関係の relationship_id (owl:inverseOf)。
             scheme: 所属する skos:ConceptScheme の ID (例: "VTuberDomain")。
-            extension: 方法論固有の拡張プロパティ。
-                例: {"namespace": "dv",
+            extension: 方法論固有の拡張プロパティ。単一 namespace なら dict、
+                複数 namespace 併記なら dict のリストを渡す
+                (Hybrid DV+Kimball モデリングのユースケース向け)。
+                例 (単一):
+                    {"namespace": "dv",
                      "data": {"link": "LNK_STREAMER_CHANNEL", "cardinality": "1:N"}}
+                例 (複数):
+                    [{"namespace": "dv", "data": {"link": "LNK_COLLAB"}},
+                     {"namespace": "kimball", "data": {"fact": "fct_collab"}}]
 
         Returns:
             保存先ファイルへのパス。

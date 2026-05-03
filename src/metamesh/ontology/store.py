@@ -61,7 +61,7 @@ class ConceptStore:
         narrower: list[str],
         related: list[str],
         scheme: str | None,
-        extension: dict[str, Any] | None,
+        extension: dict[str, Any] | list[dict[str, Any]] | None,
     ) -> Path:
         _validate_id(concept_id, kind="concept_id")
 
@@ -102,7 +102,7 @@ class ConceptStore:
         definition_en: str | None,
         inverse_of: str | None,
         scheme: str | None,
-        extension: dict[str, Any] | None,
+        extension: dict[str, Any] | list[dict[str, Any]] | None,
     ) -> Path:
         _validate_id(relationship_id, kind="relationship_id")
         _validate_id(domain, kind="domain")
@@ -146,7 +146,7 @@ def _build_jsonld(
     narrower: list[str],
     related: list[str],
     scheme: str | None,
-    extension: dict[str, Any] | None,
+    extension: dict[str, Any] | list[dict[str, Any]] | None,
 ) -> dict[str, Any]:
     context: dict[str, Any] = dict(_BASE_CONTEXT)
 
@@ -180,7 +180,7 @@ def _build_jsonld(
     if scheme:
         doc["skos:inScheme"] = {"@id": scheme}
 
-    _apply_extension(doc=doc, context=context, extension=extension)
+    _apply_extensions(doc=doc, context=context, extension=extension)
 
     return doc
 
@@ -196,7 +196,7 @@ def _build_relationship_jsonld(
     definition_en: str | None,
     inverse_of: str | None,
     scheme: str | None,
-    extension: dict[str, Any] | None,
+    extension: dict[str, Any] | list[dict[str, Any]] | None,
 ) -> dict[str, Any]:
     context: dict[str, Any] = dict(_BASE_CONTEXT)
 
@@ -222,25 +222,54 @@ def _build_relationship_jsonld(
     if scheme:
         doc["skos:inScheme"] = {"@id": scheme}
 
-    _apply_extension(doc=doc, context=context, extension=extension)
+    _apply_extensions(doc=doc, context=context, extension=extension)
 
     return doc
 
 
-def _apply_extension(
+def _normalize_extensions(
+    extension: dict[str, Any] | list[dict[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    """Accept ``None`` / single dict / list of dicts and always return a list.
+
+    Backward-compatible: existing callers passing a single dict
+    (``extension={"namespace": "dv", "data": {...}}``) keep working.
+    New callers can pass a list to attach multiple namespace extensions
+    to the same document, which is what the Hybrid (DV + Kimball)
+    Modeling Storming workflow needs.
+    """
+    if extension is None:
+        return []
+    if isinstance(extension, dict):
+        return [extension]
+    if isinstance(extension, list):
+        return extension
+    raise TypeError(
+        f"extension must be dict, list[dict], or None; got {type(extension).__name__}"
+    )
+
+
+def _apply_extensions(
     *,
     doc: dict[str, Any],
     context: dict[str, Any],
-    extension: dict[str, Any] | None,
+    extension: dict[str, Any] | list[dict[str, Any]] | None,
 ) -> None:
-    if not extension:
-        return
-    ns = extension.get("namespace")
-    data = extension.get("data") or {}
-    if ns not in EXT_NS:
-        raise ValueError(
-            f"unknown extension namespace: {ns!r}. registered: {sorted(EXT_NS)}"
-        )
-    context[ns] = EXT_NS[ns]
-    for key, value in data.items():
-        doc[f"{ns}:{key}"] = value
+    """Apply zero or more extensions to ``doc`` in order (later wins on conflicts).
+
+    Each extension is ``{"namespace": str, "data": dict}``. Multiple
+    extensions with the same namespace are valid; their ``data`` keys
+    merge with last-wins semantics so the call site can build incremental
+    overlays without needing prior knowledge of what's already there.
+    """
+    extensions = _normalize_extensions(extension)
+    for ext in extensions:
+        ns = ext.get("namespace")
+        data = ext.get("data") or {}
+        if ns not in EXT_NS:
+            raise ValueError(
+                f"unknown extension namespace: {ns!r}. registered: {sorted(EXT_NS)}"
+            )
+        context[ns] = EXT_NS[ns]
+        for key, value in data.items():
+            doc[f"{ns}:{key}"] = value

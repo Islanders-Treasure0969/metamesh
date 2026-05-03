@@ -29,7 +29,7 @@ def register(mcp: FastMCP, *, ontology_root: Path) -> None:
         narrower: list[str] | None = None,
         related: list[str] | None = None,
         scheme: str | None = None,
-        extension: dict[str, Any] | None = None,
+        extension: dict[str, Any] | list[dict[str, Any]] | None = None,
     ) -> str:
         """Register a business concept as SKOS JSON-LD.
 
@@ -45,8 +45,14 @@ def register(mcp: FastMCP, *, ontology_root: Path) -> None:
             narrower: 下位概念の concept_id 群 (skos:narrower)。
             related: 関連概念の concept_id 群 (skos:related)。
             scheme: 所属する skos:ConceptScheme の ID (例: "VTuberDomain")。
-            extension: 方法論固有の拡張プロパティ。
-                例: {"namespace": "dv", "data": {"hub": "HUB_STREAMER"}}
+            extension: 方法論固有の拡張プロパティ。単一 namespace なら dict、
+                複数 namespace を併記するなら dict のリストを渡す
+                (Hybrid DV+Kimball モデリングのユースケース向け)。
+                例 (単一):
+                    {"namespace": "dv", "data": {"hub": "HUB_STREAMER"}}
+                例 (複数):
+                    [{"namespace": "dv", "data": {"hub": "HUB_STREAMER"}},
+                     {"namespace": "kimball", "data": {"dimension": "dim_streamer", "scd_type": 2}}]
 
         Returns:
             保存先ファイルへのパス。

@@ -157,3 +157,29 @@ def test_concept_id_validator_still_rejects_special_chars(store: ConceptStore) -
             scheme=None,
             extension=None,
         )
+
+
+def test_relationship_multiple_extensions_coexist(store: ConceptStore) -> None:
+    """Relationship 側でも DV + Kimball 共存を確認 (Issue #21)。"""
+    import json
+    path = store.save_relationship(
+        relationship_id="participates_in_stream",
+        pref_label_ja="配信に出演する",
+        definition_ja="x",
+        domain="Streamer",
+        range_="Stream",
+        pref_label_en=None,
+        definition_en=None,
+        inverse_of=None,
+        scheme=None,
+        extension=[
+            {"namespace": "dv", "data": {"link": "LNK_COLLAB", "cardinality": "N:M"}},
+            {"namespace": "kimball", "data": {"fact": "fct_collaboration",
+                                              "fact_grain": "1 streamer × 1 stream"}},
+        ],
+    )
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    assert raw["dv:link"] == "LNK_COLLAB"
+    assert raw["dv:cardinality"] == "N:M"
+    assert raw["kimball:fact"] == "fct_collaboration"
+    assert raw["kimball:fact_grain"] == "1 streamer × 1 stream"
