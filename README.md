@@ -46,11 +46,12 @@ metamesh は**ドメイン非依存**の OSS。実装例は別リポジトリで
 │       ↕ 自然言語                                   │
 │  Claude Desktop / Code                            │
 │  ├─ Skills (.claude/skills/)                       │
-│  │  ├─ cbc-modeling-interview                      │
-│  │  ├─ nbr-identification                          │
-│  │  ├─ ontology-visualize                          │
-│  │  ├─ ontology-review                             │
-│  │  └─ dv-implementation-design                    │
+│  │  ├─ cbc-modeling-interview      (DV)            │
+│  │  ├─ nbr-identification          (DV)            │
+│  │  ├─ dv-implementation-design    (DV)            │
+│  │  ├─ beam-modeling-interview     (Kimball)       │
+│  │  ├─ ontology-visualize          (汎用)          │
+│  │  └─ ontology-review             (汎用)          │
 │       ↕ MCP                                        │
 │  metamesh server  (薄い primitive)                 │
 │  ├─ Write : add_concept, add_relationship          │
@@ -256,9 +257,13 @@ uv run ruff check .
 | 3d | `ontology-visualize` Skill | ✅ |
 | 3e | `ontology-review` Skill | ✅ |
 | 3f | `dv-implementation-design` Skill | ✅ |
-| 4 | SHACL バリデーション | 未着手 |
-| 5 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
-| 6 | PyPI 公開 (`pip install metamesh`) | 未着手 |
+| 3g | `beam-modeling-interview` Skill (Kimball 系入口) | ✅ |
+| 4a | `dimension-fact-identification` Skill ([#19](https://github.com/Islanders-Treasure0969/metamesh/issues/19)) | 未着手 |
+| 4b | `star-schema-design` Skill ([#20](https://github.com/Islanders-Treasure0969/metamesh/issues/20)) | 未着手 |
+| 4c | 複数 extension サポート ([#21](https://github.com/Islanders-Treasure0969/metamesh/issues/21)) | 未着手 |
+| 5 | SHACL バリデーション | 未着手 |
+| 6 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
+| 7 | PyPI 公開 (`pip install metamesh`) | 未着手 |
 
 ## 関連資料
 
