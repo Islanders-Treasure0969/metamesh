@@ -1,0 +1,62 @@
+name: CodeQL
+
+# CodeQL は GitHub native の SAST (Static Application Security Testing)。
+# Python コードに対して脆弱性パターン (SQL injection / path traversal /
+# unsafe deserialization 等) を自動検出する。public repo は無料枠。
+#
+# 結果は repo の Security タブ → Code scanning alerts で確認できる。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # 週次フルスキャン (毎週月曜 18:00 JST = UTC 09:00)。
+    # 依存ライブラリの脆弱性 DB 更新を反映させるため。
+    - cron: "0 9 * * 1"
+
+# 同じ ref への push が連続したら古い run はキャンセル
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# default を read-only に。CodeQL 結果アップロードには
+# security-events: write が必要なので job 単位で個別付与。
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (Python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      # SAST findings を Security タブに upload
+      security-events: write
+      # private repo の場合のみ packages: read が必要 (現状は public なので不要だが、
+      # public→private に切り替わっても動くように残す)
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["python"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@52485aec7be33610227643b0fe83936b8b5f061a  # v3
+        with:
+          languages: ${{ matrix.language }}
+          # security-extended は標準の security pack に加えて品質チェックの一部も実行
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@52485aec7be33610227643b0fe83936b8b5f061a  # v3
+        with:
+          category: "/language:${{ matrix.language }}"
