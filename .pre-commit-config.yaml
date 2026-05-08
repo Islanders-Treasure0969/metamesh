@@ -1,0 +1,49 @@
+# pre-commit hooks
+# https://pre-commit.com/
+#
+# セットアップ:
+#   uv sync --extra dev
+#   uv run pre-commit install
+#
+# 全ファイルに対する手動実行:
+#   uv run pre-commit run --all-files
+#
+# CI と同じ ruff 設定を使うが、commit 時に local で先に弾く設計。
+# secret 検知 (gitleaks) と private key / 大ファイル検出を含む。
+
+repos:
+  # 一般的な hygiene チェック (whitespace / EOF / large file / private key 検出)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=500"]  # 500KB 超のファイルを reject (raw data の混入防止)
+      - id: check-case-conflict  # case-insensitive な FS で衝突するファイル名
+      - id: check-merge-conflict  # 未解決の merge conflict marker
+      - id: check-yaml  # YAML 構文チェック
+      - id: check-toml  # TOML 構文チェック
+      - id: check-json  # JSON 構文チェック
+      - id: end-of-file-fixer  # ファイル末尾改行
+      - id: trailing-whitespace  # 行末の空白
+      - id: detect-private-key  # 秘密鍵 (RSA / DSA / EC / OpenSSH) の混入検出
+      - id: mixed-line-ending
+        args: ["--fix=lf"]  # LF 統一
+
+  # 秘密情報スキャン (CI と同じ gitleaks を local で先に実行)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  # Python lint / format (CI の ruff と整合)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]  # 自動修正可能な warning は fix する
+      - id: ruff-format
+
+ci:
+  # pre-commit.ci を使う場合 (任意): 自動更新を週次で受ける
+  autoupdate_schedule: weekly
+  autofix_prs: false  # PR 上での自動 fix は CodeRabbit と競合するので無効
