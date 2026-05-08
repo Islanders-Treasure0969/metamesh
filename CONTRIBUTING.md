@@ -1,4 +1,4 @@
-# Contributing to metamesh
+# metamesh へのコントリビューション
 
 metamesh は個人開発の OSS。コントリビューション歓迎。このドキュメントは「どこに何を投稿すれば届くか」の入口。
 
@@ -54,7 +54,8 @@ uv run pre-commit run --all-files   # 全ファイルに pre-commit を適用
 ### コミットメッセージの例
 
 タイトル: 短い動詞句、英語、~50 文字以内
-```
+
+```text
 Add SHACL validation for ontology integrity
 Fix HTTP 403 from Holodex API (set User-Agent header)
 Translate remaining English prose in cbc / nbr Skills
@@ -63,7 +64,8 @@ Translate remaining English prose in cbc / nbr Skills
 本文: 必要に応じて日本語で詳細記述。
 
 末尾に Co-Authored-By を入れる慣例:
-```
+
+```text
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 ```
 

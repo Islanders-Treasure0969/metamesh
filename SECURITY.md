@@ -1,4 +1,4 @@
-# Security Policy
+# セキュリティポリシー
 
 metamesh のセキュリティ脆弱性を発見した方への報告ガイド。
 
@@ -70,7 +70,7 @@ metamesh は以下を **信頼する** 前提で設計されています:
 - **SPARQL Update 防止**: `query_concept` での書き込み系操作をブロック ([src/metamesh/queries/concept.py](src/metamesh/queries/concept.py))
 - **依存関係の更新**: Dependabot で pip / GitHub Actions を週次更新
 - **Static analysis**: CodeQL workflow で Python コードの脆弱性パターンを CI で検出
-- **CI workflow 権限最小化**: 全 workflow で `permissions: read-all` を default、書き込みが必要な場合のみ明示
+- **CI workflow 権限最小化**: 全 workflow で `permissions: contents: read` を default に明示し、書き込みが必要な job のみ個別に追加権限 (例: `security-events: write`) を付与
 
 ## 謝辞
 
