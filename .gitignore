@@ -19,3 +19,4 @@ build/
 # Local secrets / per-user config
 .env
 .env.local
+.locals/

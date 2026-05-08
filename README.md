@@ -8,6 +8,10 @@
 metamesh は**ドメイン非依存**の OSS。実装例は別リポジトリで管理する。
 **現在の参照実装: [vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics)** (VTuber 配信メタデータをこのフレームワークで構造化したもの)。
 
+> **立ち位置を一文で**: 業務担当者と AI が同じ「業務概念の SSoT」を共有するための、
+> モデルストーミング駆動のワークフロー OSS。隣接する semantic layer / catalog / GraphRAG
+> エコシステムとは **競合ではなく上流補完** の関係。詳細は [`POSITIONING.md`](POSITIONING.md)。
+
 ## 解こうとしている問題
 
 データ基盤の下流に行くほど **ビジネスメタデータ（人間の頭の中の知識）が削られていく**。
@@ -263,12 +267,16 @@ uv run ruff check .
 | 4a | `dimension-fact-identification` Skill ([#19](https://github.com/Islanders-Treasure0969/metamesh/issues/19)) | ✅ |
 | 4b | `star-schema-design` Skill ([#20](https://github.com/Islanders-Treasure0969/metamesh/issues/20)) | ✅ |
 | 4c | 複数 extension サポート ([#21](https://github.com/Islanders-Treasure0969/metamesh/issues/21)) | ✅ |
-| 5 | SHACL バリデーション | 未着手 |
-| 6 | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
-| 7 | PyPI 公開 (`pip install metamesh`) | 未着手 |
+| 5a | **OSI (Open Semantic Interchange) export** — オントロジー → OSI YAML (現状の core-spec タグは v0.1.1、v1.0 系として公式アナウンス済み) | 未着手 |
+| 5b | **PyPI 公開** (`pip install metamesh`) | 未着手 |
+| 6a | SHACL バリデーション | 未着手 |
+| 6b | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
+| 6c | **Neo4j / LPG export** — オントロジー → Neo4j n10s / LPG (GraphRAG 連携) | 未着手 |
+| 7 | OSI bidirectional (import) / GraphRAG bridge | 構想中 |
 
 ## 関連資料
 
+- [`POSITIONING.md`](POSITIONING.md) — metamesh の立ち位置 / 隣接 OSS との関係 / 非ゴール
 - [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) — フレームワーク全体の設計根拠
 - [`docs/references/`](docs/references/) — Data Vault / SKOS / OWL の参考資料
 - [vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics) — 参照実装
