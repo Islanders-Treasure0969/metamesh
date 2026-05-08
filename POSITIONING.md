@@ -44,7 +44,7 @@ metamesh は競合ではなく、上流の **「業務概念の SSoT」レイヤ
 
 | 製品 | 主たる役割 | metamesh との関係 |
 |---|---|---|
-| **Open Semantic Interchange (OSI)** | semantic layer の vendor-neutral 交換フォーマット (Snowflake / dbt Labs / Salesforce / Databricks 主導) | OSI YAML への export を v0.2 ロードマップで計画 (現状未実装)。OSI 経由で BI / AI tool への接続を意図 |
+| **Open Semantic Interchange (OSI)** | semantic layer の vendor-neutral 交換フォーマット (Snowflake / dbt Labs / Salesforce / Databricks 主導) | OSI v0.1.1 YAML への export 機能 (`generate_osi_yaml` MCP tool) を実装済み。OSI 経由で BI / AI tool に接続可能。bidirectional (import) は v1.0 ロードマップ |
 | **dbt Semantic Layer / MetricFlow** | metric 定義と consume API | metamesh のオントロジーから semantic_models / metrics を生成 |
 | **OpenMetadata / DataHub / Atlan** | 実装後 catalog (lineage / discovery) | metamesh は SSoT、catalog は使い倒すレイヤ。並存可能 (補完関係) |
 | **Cube / GoodData** | semantic layer + caching + API | metamesh は定義の上流、Cube は配信下流 |

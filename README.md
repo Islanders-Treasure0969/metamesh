@@ -145,7 +145,7 @@ Claude にこう話しかけるだけ:
 | `add_relationship` | 関係性 (owl:ObjectProperty) を 1 件登録。domain / range / 逆関係 / 拡張 |
 | `query_concept` | キーワード or SPARQL で検索。SPARQL は SELECT / CONSTRUCT / DESCRIBE / ASK をサポート |
 
-### Optional bulk exporters (3)
+### Optional bulk exporters (4)
 
 CI で一括書き出しする等の用途には便利。**通常運用では `query_concept` で
 都度引いて Claude が必要な形に変換すれば足りる**ので、必須ではない。
@@ -154,6 +154,7 @@ CI で一括書き出しする等の用途には便利。**通常運用では `q
 |---|---|
 | `generate_dbt_yaml` | オントロジー → `schema.yml` (description + meta) |
 | `generate_semantic_layer` | オントロジー → MetricFlow YAML (semantic_models + entities) |
+| `generate_osi_yaml` | オントロジー → [OSI (Open Semantic Interchange)](https://github.com/open-semantic-interchange/OSI) v0.1.1 YAML。Snowflake / dbt Labs / Salesforce / Databricks らが主導する vendor-neutral semantic layer 交換フォーマット |
 | `export_llm_context` | オントロジー → Markdown digest (LLM プロンプト貼付用) |
 
 実出力サンプルは [vtuber-analytics の `output/`](https://github.com/Islanders-Treasure0969/vtuber-analytics/tree/main/output)
@@ -267,7 +268,7 @@ uv run ruff check .
 | 4a | `dimension-fact-identification` Skill ([#19](https://github.com/Islanders-Treasure0969/metamesh/issues/19)) | ✅ |
 | 4b | `star-schema-design` Skill ([#20](https://github.com/Islanders-Treasure0969/metamesh/issues/20)) | ✅ |
 | 4c | 複数 extension サポート ([#21](https://github.com/Islanders-Treasure0969/metamesh/issues/21)) | ✅ |
-| 5a | **OSI (Open Semantic Interchange) export** — オントロジー → OSI YAML (現状の core-spec タグは v0.1.1、v1.0 系として公式アナウンス済み) | 未着手 |
+| 5a | **OSI (Open Semantic Interchange) export** — オントロジー → OSI YAML (現状の core-spec タグは v0.1.1、v1.0 系として公式アナウンス済み) | ✅ |
 | 5b | **PyPI 公開** (`pip install metamesh`) | 未着手 |
 | 6a | SHACL バリデーション | 未着手 |
 | 6b | `add_metric` (MetricFlow メトリクス定義のオントロジー化) | 未着手 |
