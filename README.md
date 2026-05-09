@@ -1,5 +1,10 @@
 # metamesh
 
+[![ライセンス: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![テスト](https://github.com/Islanders-Treasure0969/metamesh/actions/workflows/test.yml/badge.svg)](https://github.com/Islanders-Treasure0969/metamesh/actions/workflows/test.yml)
+[![CodeQL](https://github.com/Islanders-Treasure0969/metamesh/actions/workflows/codeql.yml/badge.svg)](https://github.com/Islanders-Treasure0969/metamesh/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Islanders-Treasure0969/metamesh/badge)](https://scorecard.dev/viewer/?uri=github.com/Islanders-Treasure0969/metamesh)
+
 > モデルストーミング（DV / Dimensional）で生まれるビジネスメタデータを
 > **W3C 標準 (SKOS / OWL / JSON-LD)** で 1 箇所に保存し、
 > **MCP 経由で Claude が直接読み書き** することで、
