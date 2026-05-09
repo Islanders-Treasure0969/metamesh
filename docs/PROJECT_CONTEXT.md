@@ -12,6 +12,19 @@
 > に分離済み**。フレームワーク本体 (本リポジトリ) はドメイン非依存で、VTuber
 > 固有のデータ・スクリプトは含まない。
 
+> **このドキュメントの位置付け (2026-05-09 更新)**:
+> 本書は **設計の出発点・歴史的経緯を保存する一次資料** として残している。
+> 当初の議論メモが含まれており、§3.3 / §3.4 / §5 / §6 など一部のセクションは
+> **実装が進んだ結果として上書きされた状態**。各 section に
+> *「📝 現在のステータス」* note を追加してあるので参照のこと。
+>
+> **最新の対外メッセージ・ロードマップは以下のドキュメントが正**:
+> - [`README.md`](../README.md) — プロジェクト概要、設計思想、MCP ツール一覧、ロードマップ
+> - [`POSITIONING.md`](../POSITIONING.md) — 立ち位置、4 つの差別化、隣接 OSS との関係
+> - [`SECURITY.md`](../SECURITY.md) — セキュリティポリシー、脆弱性報告経路
+> - [`CONTRIBUTING.md`](../CONTRIBUTING.md) — コントリビューションガイド
+> - [`docs/RELEASING.md`](RELEASING.md) — PyPI / TestPyPI リリース手順
+
 ---
 
 ## 0. このプロジェクトの一言説明
@@ -184,6 +197,9 @@ Claude Desktop / Claude Code
 
 → **未決定。Claude Desktopでの議論で決める。**
 
+> 📝 **現在のステータス**: **候補 A (Python / FastMCP / pyld + rdflib / pytest)
+> で確定済み**。実装は `src/metamesh/` 配下、依存は [`pyproject.toml`](../pyproject.toml) 参照。
+
 ### 3.4 MVPスコープ（Step 1）
 
 **Step 1（最初に動かすもの）**
@@ -199,6 +215,19 @@ Claude Desktop / Claude Code
 - `generate_semantic_layer` 追加
 - VTuber分析基盤への実適用
 - GitHub公開・コミュニティへ
+
+> 📝 **現在のステータス**: **Step 1〜4c までの実装完了**。詳細な進捗は
+> [`README.md` のロードマップ表](../README.md#ロードマップ-フレームワーク本体) 参照。
+> 主な完了項目:
+> - Core MCP tools (`add_concept` / `add_relationship` / `query_concept`) ✅
+> - Bulk exporters (`generate_dbt_yaml` / `generate_semantic_layer` / `export_llm_context`) ✅
+> - 8 Skills (cbc-modeling-interview / nbr-identification / dv-implementation-design /
+>   beam-modeling-interview / dimension-fact-identification / star-schema-design /
+>   ontology-visualize / ontology-review) ✅
+> - 多 extension サポート (#21) ✅
+> - GitHub 公開済み: [Islanders-Treasure0969/metamesh](https://github.com/Islanders-Treasure0969/metamesh)
+>
+> 進行中 / 未着手は v0.2 (OSI export, PyPI 公開) と v0.3 (SHACL, add_metric, Neo4j export)。
 
 ---
 
@@ -288,6 +317,13 @@ NBR（Natural Business Relationships）候補：
 | 第5章 | VTuber分析基盤 | モデルストーミング→metamesh適用→エージェント分析 | **これから作る** |
 | 第6章 | 考察と今後 | DEがオントロジーを扱う時代・metameshロードマップ | 本会話の議論 |
 
+> 📝 **現在のステータス**: 上記の Zenn Book 構成は当初草案。実装が進んだ結果、
+> **シリーズ構成は 7 章に拡張**された (Dimensional Model / Modeling Storming /
+> AI 時代のメタデータ管理スキームなどを追加)。最新版は
+> `.locals/zenn/notes-strategy-and-positioning.md` (private) と
+> [`POSITIONING.md`](../POSITIONING.md) を参照。
+> 第 1 章ドラフトは `.locals/zenn/01-problem-statement.md` (private) に存在。
+
 ---
 
 ## 6. 次にやること（Claude Desktopでの実装開始）
@@ -305,6 +341,20 @@ NBR（Natural Business Relationships）候補：
 ④ Holodex API でデータ取得スクリプト作成
 ⑤ dbt プロジェクトのスキャフォールド
 ```
+
+> 📝 **現在のステータス**: ①〜⑤ **すべて完了**。
+> ① Python / FastMCP を採用、② Step 1〜4c まで実装、③ vtuber-analytics に
+> 7 概念 + 6 関係性で実装、④ `scripts/validate_holodex.py` で実データ検証完了、
+> ⑤ dbt プロジェクトの足回りは
+> [vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics) にある。
+>
+> **次の優先順位は v0.2 (OSI export / PyPI 公開) と v0.3 (SHACL / add_metric /
+> Neo4j export)**。詳細は [`README.md` ロードマップ](../README.md#ロードマップ-フレームワーク本体) と
+> 関連 Issue ([#27](https://github.com/Islanders-Treasure0969/metamesh/issues/27) /
+> [#28](https://github.com/Islanders-Treasure0969/metamesh/issues/28) /
+> [#29](https://github.com/Islanders-Treasure0969/metamesh/issues/29) /
+> [#30](https://github.com/Islanders-Treasure0969/metamesh/issues/30) /
+> [#31](https://github.com/Islanders-Treasure0969/metamesh/issues/31)) を参照。
 
 ### Claude Desktopへの指示（このファイルを渡した後）
 
@@ -335,6 +385,20 @@ PROJECT_CONTEXT.md を読んだ上で、以下を進めてください：
 | `research_part4_5_implementation_research.md` | 実装調査 |
 | `book1/` | Data Vault基礎（Hash Keys, Audit Columns等） |
 | `chapter_*.md` | DV × Ontology/Taxonomy 詳細章 |
+
+> 📝 **現在のステータス**: 上記の `research_part*.md` / `book1/` / `chapter_*.md`
+> は **本リポジトリには含まれていない** (Claude.ai での議論段階の参照資料のみ)。
+> リポジトリ内で参照すべき主要ドキュメントは以下:
+>
+> | ファイル | 内容 |
+> |---|---|
+> | [`README.md`](../README.md) | プロジェクト概要、設計思想、MCP ツール、SPARQL 実例、ロードマップ |
+> | [`POSITIONING.md`](../POSITIONING.md) | 立ち位置、4 つの差別化、隣接 OSS との関係、非ゴール |
+> | [`SECURITY.md`](../SECURITY.md) | 脆弱性報告ポリシー、threat model 概略、対応タイムライン |
+> | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | 開発環境、ブランチ戦略、コミット規約、CI |
+> | [`docs/RELEASING.md`](RELEASING.md) | PyPI / TestPyPI リリース手順 (Trusted Publishers + OIDC) |
+> | [`docs/references/`](references/) | Data Vault / SKOS / OWL の参考資料 |
+> | [`.claude/skills/*/SKILL.md`](../.claude/skills/) | 8 Skills の各 SKILL.md (cbc / nbr / dv-impl / beam / dim-fact / star-schema / viz / review) |
 
 ---
 
