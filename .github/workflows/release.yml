@@ -1,0 +1,151 @@
+name: Release
+
+# PyPI / TestPyPI へのリリース workflow。
+#
+# 認証は PyPI Trusted Publishers (OIDC) を使う。長期 token を repo secret に
+# 置く必要がない。事前準備は user 側で:
+#
+# - PyPI 側: https://pypi.org/manage/account/publishing/ で
+#   - PyPI Project Name: metamesh
+#   - Owner: Islanders-Treasure0969
+#   - Repository name: metamesh
+#   - Workflow name: release.yml
+#   - Environment name: pypi (任意だが推奨)
+# - TestPyPI 側: https://test.pypi.org/manage/account/publishing/ で同上
+#   - Environment name: testpypi
+#
+# - GitHub 側: Settings → Environments で `pypi` と `testpypi` を作成
+#   pypi には "Required reviewers" を設定して手動 approval を強制 (推奨)
+#
+# トリガ:
+# - tag push `v*.*.*` → PyPI に publish
+# - workflow_dispatch (手動、Actions タブから): TestPyPI に publish (dry-run)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Publish target"
+        required: true
+        default: "testpypi"
+        type: choice
+        options:
+          - testpypi
+          - pypi
+
+# Default to read-only.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@8d55fbecc275b1c35dbe060458839f8d30439ccf  # v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Build sdist + wheel
+        run: uv build
+
+      - name: Verify artifact metadata (twine check)
+        run: |
+          uv run --with twine twine check dist/*
+
+      - name: Upload built artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/metamesh
+    permissions:
+      id-token: write  # OIDC token for Trusted Publishers
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b  # release/v1 (v1.14.0)
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          # OIDC を使うので password / api token は不要
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/metamesh
+    permissions:
+      id-token: write  # OIDC token for Trusted Publishers
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b  # release/v1 (v1.14.0)
+        # OIDC を使うので password / api token は不要
+
+  github-release:
+    name: Create GitHub Release notes
+    needs: [publish-pypi]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write  # release notes を書くため
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          fetch-depth: 0
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Generate release notes and attach artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          gh release create "$tag" \
+            --title "$tag" \
+            --generate-notes \
+            --verify-tag \
+            dist/*

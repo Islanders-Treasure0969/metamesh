@@ -8,12 +8,53 @@ license = { text = "Apache-2.0" }
 authors = [
     { name = "Kiichi Iwashita" },
 ]
+keywords = [
+    "mcp",
+    "ontology",
+    "skos",
+    "owl",
+    "json-ld",
+    "semantic-layer",
+    "data-vault",
+    "kimball",
+    "dbt",
+    "metricflow",
+    "metadata",
+    "business-metadata",
+    "data-modeling",
+    "ai",
+    "llm",
+    "claude",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup",
+    "Typing :: Typed",
+]
 dependencies = [
     "mcp>=1.2.0",
     "rdflib>=7.0.0",
     "pyld>=2.0.4",
     "pyyaml>=6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Islanders-Treasure0969/metamesh"
+Repository = "https://github.com/Islanders-Treasure0969/metamesh"
+Issues = "https://github.com/Islanders-Treasure0969/metamesh/issues"
+Documentation = "https://github.com/Islanders-Treasure0969/metamesh#readme"
+Changelog = "https://github.com/Islanders-Treasure0969/metamesh/releases"
 
 [project.optional-dependencies]
 dev = [
