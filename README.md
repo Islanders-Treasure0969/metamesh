@@ -1,5 +1,11 @@
 # metamesh
 
+[![PyPI バージョン](https://img.shields.io/pypi/v/metamesh.svg)](https://pypi.org/project/metamesh/)
+[![対応 Python バージョン](https://img.shields.io/pypi/pyversions/metamesh.svg)](https://pypi.org/project/metamesh/)
+[![ライセンス: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![テスト](https://github.com/Islanders-Treasure0969/metamesh/actions/workflows/test.yml/badge.svg)](https://github.com/Islanders-Treasure0969/metamesh/actions/workflows/test.yml)
+[![CodeQL](https://github.com/Islanders-Treasure0969/metamesh/actions/workflows/codeql.yml/badge.svg)](https://github.com/Islanders-Treasure0969/metamesh/actions/workflows/codeql.yml)
+
 > モデルストーミング（DV / Dimensional）で生まれるビジネスメタデータを
 > **W3C 標準 (SKOS / OWL / JSON-LD)** で 1 箇所に保存し、
 > **MCP 経由で Claude が直接読み書き** することで、
@@ -72,13 +78,23 @@ metamesh は**ドメイン非依存**の OSS。実装例は別リポジトリで
 
 ## クイックスタート
 
-### 1. 依存インストール
+### 1. インストール
+
+**(推奨) PyPI から**:
+
+```bash
+pip install metamesh
+# または uv 環境なら
+uv tool install metamesh
+```
+
+**ソースから (開発したい / 最新 main を試したい場合)**:
 
 ```bash
 git clone https://github.com/Islanders-Treasure0969/metamesh.git
 cd metamesh
 uv sync --extra dev
-uv run pytest          # 動作確認 (69 tests)
+uv run pytest          # 動作確認
 ```
 
 ### 2. オントロジーディレクトリを用意する
@@ -101,6 +117,25 @@ export METAMESH_ONTOLOGY_ROOT=$PWD/vtuber-analytics/ontology
 ### 3. Claude Desktop に登録
 
 `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+**(推奨) PyPI からインストール済みの場合**:
+
+```json
+{
+  "mcpServers": {
+    "metamesh": {
+      "command": "metamesh",
+      "env": {
+        "METAMESH_ONTOLOGY_ROOT": "/path/to/your/ontology"
+      }
+    }
+  }
+}
+```
+
+`metamesh` コマンドのフルパスは `which metamesh` で取得 (PATH を継承しない Claude Desktop 環境では絶対パス推奨)。
+
+**ソースから動かす場合**:
 
 ```json
 {
@@ -279,6 +314,7 @@ uv run ruff check .
 - [`POSITIONING.md`](POSITIONING.md) — metamesh の立ち位置 / 隣接 OSS との関係 / 非ゴール
 - [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) — フレームワーク全体の設計根拠
 - [`docs/references/`](docs/references/) — Data Vault / SKOS / OWL の参考資料
+- [`docs/RELEASING.md`](docs/RELEASING.md) — PyPI / TestPyPI へのリリース手順 (Trusted Publishers + OIDC)
 - [vtuber-analytics](https://github.com/Islanders-Treasure0969/vtuber-analytics) — 参照実装
 
 ## License
