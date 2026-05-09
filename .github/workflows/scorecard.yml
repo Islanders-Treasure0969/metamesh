@@ -1,0 +1,58 @@
+name: OSSF Scorecard
+
+# OpenSSF Scorecard は OSS の健全性 / セキュリティ実践を 18 項目で
+# 自動評価する標準ツール (Linux Foundation / Open Source Security Foundation)。
+#
+# 評価項目: Branch-Protection, Dangerous-Workflow, Token-Permissions,
+# Pinned-Dependencies, SAST, Vulnerabilities, Code-Review, License,
+# Maintained, Packaging, Security-Policy, Signed-Releases, etc.
+#
+# 結果は repo の Security タブ → Code scanning に SARIF として upload され、
+# https://api.scorecard.dev/projects/github.com/<owner>/<repo>/badge で
+# 公開バッジを取得できる。
+
+on:
+  branch_protection_rule:
+  schedule:
+    # 週次 (毎週月曜 03:00 JST)。スコアの変動を継続監視するため。
+    - cron: "0 18 * * 0"
+  push:
+    branches: [main]
+
+# Default to read-only。job 単位で必要な write 権限を明示付与。
+permissions:
+  contents: read
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # SARIF upload (Code scanning alerts に findings を載せる)
+      security-events: write
+      # OIDC token (Scorecard が独自に署名付き分析結果を sigstore に publish)
+      id-token: write
+      # branch protection rules / 設定読み取り
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@99c09fe975337306107572b4fdf4db224cf8e2f2  # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # publish_results: スコアを Scorecard 公開 DB (api.scorecard.dev) に
+          # publish。これがないとバッジが更新されない。public repo のみ可。
+          publish_results: true
+
+      - name: Upload to code-scanning
+        uses: github/codeql-action/upload-sarif@52485aec7be33610227643b0fe83936b8b5f061a  # v3
+        with:
+          sarif_file: results.sarif
